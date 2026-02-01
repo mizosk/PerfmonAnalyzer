@@ -1,6 +1,6 @@
 # タスク001: バックエンドプロジェクトのセットアップ
 
-**ステータス**: 未着手  
+**ステータス**: 完了  
 **優先度**: 高  
 **見積もり**: 1時間
 
@@ -53,9 +53,9 @@ PerfmonAnalyzer.Api/
 
 ## 受け入れ基準
 
-- [ ] `dotnet build` が成功する
-- [ ] `dotnet run` で API が起動し、`https://localhost:5001/swagger` にアクセスできる
-- [ ] CORS が設定され、`http://localhost:5173` からアクセス可能
+- [x] `dotnet build` が成功する
+- [x] `dotnet run` で API が起動し、`http://localhost:5272/swagger` にアクセスできる
+- [x] CORS が設定され、`http://localhost:5173` からアクセス可能
 
 ## 技術メモ
 
@@ -81,4 +81,4 @@ PerfmonAnalyzer.Api/
 
 ## 完了日
 
-（完了時に記入）
+2026年2月1日
