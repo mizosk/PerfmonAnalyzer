@@ -50,3 +50,8 @@ logs/
 # Build results
 build/
 out/
+# Test results
+TestResults/
+*.trx
+coverage/
+*.coveragexml
