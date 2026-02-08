@@ -1,7 +1,12 @@
+using PerfmonAnalyzer.Api.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers();
+
+// アプリケーションサービスの登録
+builder.Services.AddScoped<ICsvImporter, CsvImporter>();
 
 // CORS設定 - React開発サーバー（http://localhost:5173）からのアクセスを許可
 builder.Services.AddCors(options =>
