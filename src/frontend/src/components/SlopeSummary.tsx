@@ -27,22 +27,18 @@ export const SlopeSummary: React.FC<SlopeSummaryProps> = ({ results }) => {
         <thead>
           <tr>
             <th>カウンター名</th>
-            <th>傾き</th>
-            <th>切片</th>
+            <th>傾き (KB/10分)</th>
             <th>R²</th>
-            <th>開始時間</th>
-            <th>終了時間</th>
+            <th>警告</th>
           </tr>
         </thead>
         <tbody>
           {results.map((result, index) => (
-            <tr key={index}>
+            <tr key={index} className={result.isWarning ? 'warning' : ''}>
               <td>{result.counterName}</td>
-              <td>{result.slope.toFixed(6)}</td>
-              <td>{result.intercept.toFixed(4)}</td>
+              <td>{result.slopeKBPer10Min.toFixed(4)}</td>
               <td>{result.rSquared.toFixed(4)}</td>
-              <td>{result.startTime}</td>
-              <td>{result.endTime}</td>
+              <td>{result.isWarning ? '⚠' : '-'}</td>
             </tr>
           ))}
         </tbody>

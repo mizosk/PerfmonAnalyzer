@@ -2,23 +2,31 @@
  * パフォーマンスモニターデータの共通型定義
  */
 
-/** CSV インポート結果 */
-export interface ImportResult {
-  fileName: string;
-  rowCount: number;
-  counters: string[];
-}
-
-/** パフォーマンスカウンターのデータポイント */
+/** データポイント */
 export interface DataPoint {
   timestamp: string;
   value: number;
 }
 
-/** カウンターデータ */
-export interface CounterData {
+/** カウンター情報（バックエンド CounterInfo に対応） */
+export interface CounterInfo {
+  machineName: string;
+  category: string;
+  instanceName: string;
   counterName: string;
+  displayName: string;
   dataPoints: DataPoint[];
+}
+
+/** CSV アップロード結果（バックエンド UploadResult に対応） */
+export interface UploadResult {
+  sessionId: string;
+  counters: CounterInfo[];
+}
+
+/** データ取得レスポンス（バックエンド DataResponse に対応） */
+export interface DataResponse {
+  counters: CounterInfo[];
 }
 
 /** 範囲選択 */
@@ -27,7 +35,15 @@ export interface TimeRange {
   end: string;
 }
 
-/** 傾き解析結果 */
+/** 傾き分析リクエスト（バックエンド SlopeRequest に対応） */
+export interface SlopeRequest {
+  sessionId: string;
+  startTime: string;
+  endTime: string;
+  thresholdKBPer10Min?: number;
+}
+
+/** 傾き分析結果（バックエンド SlopeResult に対応） */
 export interface SlopeResult {
   counterName: string;
   slopeKBPer10Min: number;
@@ -35,8 +51,12 @@ export interface SlopeResult {
   rSquared: number;
 }
 
+/** 傾き分析レスポンス（バックエンド SlopeResponse に対応） */
+export interface SlopeResponse {
+  results: SlopeResult[];
+}
+
 /** API エラーレスポンス */
 export interface ApiError {
-  message: string;
-  details?: string;
+  error: string;
 }

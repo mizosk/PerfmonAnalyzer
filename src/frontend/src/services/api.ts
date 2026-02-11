@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { ImportResult, CounterData, SlopeResult, TimeRange } from '../types';
+import type { UploadResult, DataResponse, SlopeResponse, SlopeRequest, TimeRange } from '../types';
 
 /**
  * API クライアント
@@ -19,31 +19,47 @@ export const getHealth = async (): Promise<{ status: string }> => {
 };
 
 /** CSV ファイルをアップロード */
-export const uploadCsv = async (file: File): Promise<ImportResult> => {
+export const uploadCsv = async (file: File): Promise<UploadResult> => {
   const formData = new FormData();
   formData.append('file', file);
-  const response = await apiClient.post('/csv/upload', formData, {
+  const response = await apiClient.post('/file/upload', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });
   return response.data;
 };
 
-/** カウンターデータを取得 */
-export const getCounterData = async (counterName: string): Promise<CounterData> => {
-  const response = await apiClient.get(`/counters/${encodeURIComponent(counterName)}`);
+/** セッションのカウンターデータを取得 */
+export const getSessionData = async (
+  sessionId: string,
+  startTime?: string,
+  endTime?: string
+): Promise<DataResponse> => {
+  const params: Record<string, string> = {};
+  if (startTime) params.startTime = startTime;
+  if (endTime) params.endTime = endTime;
+
+  const response = await apiClient.get(`/data/${encodeURIComponent(sessionId)}`, { params });
   return response.data;
 };
 
 /** 傾き解析を実行 */
-export const analyzeSlopeForCounter = async (
-  counterName: string,
-  range: TimeRange
-): Promise<SlopeResult> => {
-  const response = await apiClient.post('/analysis/slope', {
-    counterName,
-    ...range,
-  });
+export const analyzeSlope = async (request: SlopeRequest): Promise<SlopeResponse> => {
+  const response = await apiClient.post('/analysis/slope', request);
   return response.data;
+};
+
+/** 傾き解析のヘルパー（sessionId + TimeRange から SlopeRequest を組み立て） */
+export const analyzeSlopeForSession = async (
+  sessionId: string,
+  range: TimeRange,
+  thresholdKBPer10Min?: number
+): Promise<SlopeResponse> => {
+  return analyzeSlope({
+    sessionId,
+    startTime: range.start,
+    endTime: range.end,
+    thresholdKBPer10Min,
+  });
 };
 
 /** 傾き解析結果をエクスポート */

@@ -38,24 +38,21 @@ public class AnalysisController : ControllerBase
             return BadRequest(new { error = "StartTime は EndTime より前でなければなりません。" });
         }
 
-        if (!_dataService.SessionExists(request.SessionId))
+        try
+        {
+            var counters = _dataService.GetCounters(request.SessionId, request.StartTime, request.EndTime);
+
+            var results = _slopeAnalyzer.Calculate(
+                counters,
+                request.StartTime,
+                request.EndTime,
+                request.ThresholdKBPer10Min);
+
+            return Ok(new SlopeResponse { Results = results });
+        }
+        catch (KeyNotFoundException)
         {
             return NotFound(new { error = $"Session {request.SessionId} が見つかりません。" });
         }
-
-        var counters = _dataService.GetCounters(request.SessionId, request.StartTime, request.EndTime);
-
-        var results = _slopeAnalyzer.Calculate(
-            counters,
-            request.StartTime,
-            request.EndTime,
-            request.ThresholdKBPer10Min);
-
-        var response = new SlopeResponse
-        {
-            Results = results,
-        };
-
-        return Ok(response);
     }
 }

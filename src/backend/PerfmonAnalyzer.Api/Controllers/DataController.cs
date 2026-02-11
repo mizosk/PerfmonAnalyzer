@@ -31,26 +31,29 @@ public class DataController : ControllerBase
         [FromQuery] DateTime? startTime = null,
         [FromQuery] DateTime? endTime = null)
     {
-        if (!_dataService.SessionExists(sessionId))
+        // startTime / endTime の片方だけ指定された場合はエラー
+        if (startTime.HasValue != endTime.HasValue)
+        {
+            return BadRequest(new { error = "startTime と endTime は両方指定するか、両方省略してください。" });
+        }
+
+        try
+        {
+            List<CounterInfo> counters;
+            if (startTime.HasValue && endTime.HasValue)
+            {
+                counters = _dataService.GetCounters(sessionId, startTime.Value, endTime.Value);
+            }
+            else
+            {
+                counters = _dataService.GetCounters(sessionId);
+            }
+
+            return Ok(new DataResponse { Counters = counters });
+        }
+        catch (KeyNotFoundException)
         {
             return NotFound(new { error = $"Session {sessionId} が見つかりません。" });
         }
-
-        List<CounterInfo> counters;
-        if (startTime.HasValue && endTime.HasValue)
-        {
-            counters = _dataService.GetCounters(sessionId, startTime.Value, endTime.Value);
-        }
-        else
-        {
-            counters = _dataService.GetCounters(sessionId);
-        }
-
-        var response = new DataResponse
-        {
-            Counters = counters,
-        };
-
-        return Ok(response);
     }
 }

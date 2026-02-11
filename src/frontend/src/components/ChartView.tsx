@@ -10,7 +10,7 @@ import {
   Legend,
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
-import type { CounterData } from '../types';
+import type { CounterInfo } from '../types';
 
 // Chart.js コンポーネントを登録
 ChartJS.register(
@@ -29,7 +29,7 @@ ChartJS.register(
  */
 
 interface ChartViewProps {
-  data?: CounterData;
+  data?: CounterInfo;
 }
 
 export const ChartView: React.FC<ChartViewProps> = ({ data }) => {
@@ -46,7 +46,7 @@ export const ChartView: React.FC<ChartViewProps> = ({ data }) => {
     labels: data.dataPoints.map((dp) => dp.timestamp),
     datasets: [
       {
-        label: data.counterName,
+        label: data.displayName,
         data: data.dataPoints.map((dp) => dp.value),
         borderColor: 'rgb(75, 192, 192)',
         backgroundColor: 'rgba(75, 192, 192, 0.5)',
@@ -61,7 +61,7 @@ export const ChartView: React.FC<ChartViewProps> = ({ data }) => {
       legend: { position: 'top' as const },
       title: {
         display: true,
-        text: data.counterName,
+        text: data.displayName,
       },
     },
   };

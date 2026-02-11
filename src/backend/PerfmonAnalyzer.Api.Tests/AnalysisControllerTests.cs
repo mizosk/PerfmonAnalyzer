@@ -47,7 +47,9 @@ public class AnalysisControllerTests
             StartTime = new DateTime(2026, 1, 1),
             EndTime = new DateTime(2026, 1, 2),
         };
-        _mockDataService.Setup(s => s.SessionExists("nonexistent")).Returns(false);
+        _mockDataService
+            .Setup(s => s.GetCounters("nonexistent", It.IsAny<DateTime>(), It.IsAny<DateTime>()))
+            .Throws(new KeyNotFoundException("Session nonexistent not found"));
 
         // Act
         var result = _controller.CalculateSlope(request);
@@ -95,7 +97,6 @@ public class AnalysisControllerTests
             }
         };
 
-        _mockDataService.Setup(s => s.SessionExists(sessionId)).Returns(true);
         _mockDataService.Setup(s => s.GetCounters(sessionId, startTime, endTime)).Returns(counters);
         _mockSlopeAnalyzer
             .Setup(a => a.Calculate(counters, startTime, endTime, 50))
