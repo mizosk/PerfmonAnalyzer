@@ -1,7 +1,7 @@
 ---
 description: TDD の原則に従って、指定された計画に基づいて実装を実行します。
 tools:
-  ["execute", "read", "edit", "search", "web", "todo"]
+  ['execute', 'read', 'edit', 'search', 'web', 'todo']
 ---
 
 与えられた実行計画に従って、実装を行ってください。TDD に倣って、以下のステップで実施します。
