@@ -2,6 +2,9 @@ import type React from 'react';
 import { useState, useCallback } from 'react';
 import type { TimeRange } from '../types';
 
+/** バリデーションエラーメッセージ */
+const VALIDATION_ERROR_START_AFTER_END = '開始日時は終了日時より前に設定してください';
+
 /**
  * 範囲選択コンポーネントの props
  */
@@ -30,10 +33,16 @@ export const RangeSelector: React.FC<RangeSelectorProps> = ({ initialRange, onRa
   const [end, setEnd] = useState(
     initialRange ? toDateTimeLocal(initialRange.end) : ''
   );
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   /** 適用ボタンクリック時 */
   const handleApply = useCallback(() => {
     if (start && end) {
+      if (start >= end) {
+        setValidationError(VALIDATION_ERROR_START_AFTER_END);
+        return;
+      }
+      setValidationError(null);
       onRangeChange({ start, end });
     }
   }, [start, end, onRangeChange]);
@@ -64,6 +73,9 @@ export const RangeSelector: React.FC<RangeSelectorProps> = ({ initialRange, onRa
       <button onClick={handleApply} disabled={!start || !end}>
         適用
       </button>
+      {validationError && (
+        <p className="range-selector__error" role="alert">{validationError}</p>
+      )}
     </div>
   );
 };
