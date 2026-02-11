@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import type React from 'react';
 import type { SlopeResult } from '../types';
 
@@ -22,12 +23,14 @@ export const SlopeSummary: React.FC<SlopeSummaryProps> = ({
   threshold,
   onThresholdChange,
 }) => {
-  // 傾き降順でソート（元配列を変更しない）
-  const sorted = [...results].sort(
-    (a, b) => b.slopeKBPer10Min - a.slopeKBPer10Min,
+  // 傾き降順でソート（元配列を変更しない）— results が変わらない限り再計算しない
+  const sorted = useMemo(
+    () => [...results].sort((a, b) => b.slopeKBPer10Min - a.slopeKBPer10Min),
+    [results],
   );
 
-  /** クライアント側で閾値判定を行う */
+  // 閾値の即時反映を優先するため、バックエンド由来の isWarning ではなく
+  // フロントエンド側で slopeKBPer10Min > threshold により判定を行う
   const isWarning = (result: SlopeResult): boolean =>
     result.slopeKBPer10Min > threshold;
 
@@ -41,6 +44,8 @@ export const SlopeSummary: React.FC<SlopeSummaryProps> = ({
             <input
               type="number"
               value={threshold}
+              min="0"
+              step="1"
               onChange={(e) => onThresholdChange(Number(e.target.value))}
             />
           </label>
@@ -50,7 +55,7 @@ export const SlopeSummary: React.FC<SlopeSummaryProps> = ({
       {sorted.length === 0 ? (
         <p>解析結果がありません。</p>
       ) : (
-        <table className="slope-summary__table">
+        <table className="slope-summary__table" aria-label="傾き解析結果一覧">
           <thead>
             <tr>
               <th>カウンタ名</th>

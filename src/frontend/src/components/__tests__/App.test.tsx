@@ -27,10 +27,11 @@ vi.mock('../../services/api', () => ({
 }));
 
 import App from '../../App';
-import { uploadCsv } from '../../services/api';
-import type { UploadResult } from '../../types';
+import { uploadCsv, analyzeSlopeForSession } from '../../services/api';
+import type { UploadResult, SlopeResponse } from '../../types';
 
 const mockUploadCsv = vi.mocked(uploadCsv);
+const mockAnalyzeSlopeForSession = vi.mocked(analyzeSlopeForSession);
 
 /** ファイル入力要素を取得するヘルパー */
 function getFileInput(): HTMLInputElement {
@@ -89,5 +90,83 @@ describe('App', () => {
 
     // API が正しく呼ばれたことを確認
     expect(mockUploadCsv).toHaveBeenCalledWith(file);
+  });
+
+  it('ファイルアップロード成功後に傾きサマリセクションが表示される', async () => {
+    const mockResult: UploadResult = {
+      sessionId: 'session-slope-test',
+      counters: [
+        {
+          machineName: 'SERVER01',
+          category: 'Memory',
+          instanceName: '',
+          counterName: 'Available MBytes',
+          displayName: 'Memory - Available MBytes',
+          dataPoints: [
+            { timestamp: '2026-02-01T10:00:00', value: 4096 },
+            { timestamp: '2026-02-01T10:01:00', value: 4000 },
+          ],
+        },
+      ],
+    };
+    mockUploadCsv.mockResolvedValueOnce(mockResult);
+    mockAnalyzeSlopeForSession.mockResolvedValueOnce({ results: [] });
+
+    render(<App />);
+
+    const input = getFileInput();
+    const file = new File(['csv'], 'perfmon.csv', { type: 'text/csv' });
+    fireEvent.change(input, { target: { files: [file] } });
+    fireEvent.click(screen.getByRole('button', { name: 'アップロード' }));
+
+    await waitFor(() => {
+      expect(screen.getByText('傾き解析結果')).toBeInTheDocument();
+    });
+  });
+
+  it('analyzeSlopeForSession が結果を返した場合、テーブルにカウンタ名が表示される', async () => {
+    const mockResult: UploadResult = {
+      sessionId: 'session-slope-table',
+      counters: [
+        {
+          machineName: 'SERVER01',
+          category: 'Memory',
+          instanceName: '',
+          counterName: 'Available MBytes',
+          displayName: 'Memory - Available MBytes',
+          dataPoints: [
+            { timestamp: '2026-02-01T10:00:00', value: 4096 },
+            { timestamp: '2026-02-01T10:01:00', value: 4000 },
+          ],
+        },
+      ],
+    };
+    const slopeResponse: SlopeResponse = {
+      results: [
+        {
+          counterName: '\\SERVER01\\Memory\\Available MBytes',
+          slopeKBPer10Min: 75.5,
+          isWarning: true,
+          rSquared: 0.95,
+        },
+      ],
+    };
+    mockUploadCsv.mockResolvedValueOnce(mockResult);
+    mockAnalyzeSlopeForSession.mockResolvedValueOnce(slopeResponse);
+
+    render(<App />);
+
+    const input = getFileInput();
+    const file = new File(['csv'], 'perfmon.csv', { type: 'text/csv' });
+    fireEvent.change(input, { target: { files: [file] } });
+    fireEvent.click(screen.getByRole('button', { name: 'アップロード' }));
+
+    await waitFor(() => {
+      expect(
+        screen.getByText('\\SERVER01\\Memory\\Available MBytes'),
+      ).toBeInTheDocument();
+    });
+    // テーブルが aria-label 付きで表示されていることも確認
+    expect(screen.getByRole('table', { name: '傾き解析結果一覧' })).toBeInTheDocument();
   });
 });
