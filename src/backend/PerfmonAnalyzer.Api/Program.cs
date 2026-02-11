@@ -7,6 +7,7 @@ builder.Services.AddControllers();
 
 // アプリケーションサービスの登録
 builder.Services.AddScoped<ICsvImporter, CsvImporter>();
+builder.Services.AddScoped<ISlopeAnalyzer, SlopeAnalyzer>();
 
 // CORS設定 - React開発サーバー（http://localhost:5173）からのアクセスを許可
 builder.Services.AddCors(options =>
