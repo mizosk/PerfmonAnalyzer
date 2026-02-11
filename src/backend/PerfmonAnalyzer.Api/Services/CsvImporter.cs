@@ -20,11 +20,11 @@ public partial class CsvImporter : ICsvImporter
     private static partial Regex PerfmonHeaderRegex();
 
     /// <inheritdoc />
-    public async Task<List<CounterInfo>> ImportAsync(Stream csvStream)
+    public async Task<List<CounterInfo>> ImportAsync(Stream csvStream, CancellationToken cancellationToken = default)
     {
         // ストリーム全体をメモリに読み込み（エンコーディング判定のため）
         using var memoryStream = new MemoryStream();
-        await csvStream.CopyToAsync(memoryStream);
+        await csvStream.CopyToAsync(memoryStream, cancellationToken);
         memoryStream.Position = 0;
 
         var encoding = DetectEncoding(memoryStream);
@@ -39,10 +39,16 @@ public partial class CsvImporter : ICsvImporter
         using var csv = new CsvReader(reader, config);
 
         // ヘッダ読み込み
-        await csv.ReadAsync();
+        if (!await csv.ReadAsync())
+        {
+            return []; // 空ファイル（ヘッダなし）の場合は空リストを返す
+        }
         csv.ReadHeader();
-        var headers = csv.HeaderRecord
-            ?? throw new InvalidOperationException("CSV にヘッダ行がありません。");
+        var headers = csv.HeaderRecord;
+        if (headers == null || headers.Length <= 1)
+        {
+            return []; // ヘッダなし、またはタイムスタンプ列のみの場合は空リストを返す
+        }
 
         // ヘッダからカウンタ情報を抽出（最初の列はタイムスタンプ）
         var counterInfos = new List<CounterInfo>();

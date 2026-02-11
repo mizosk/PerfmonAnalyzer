@@ -1,4 +1,7 @@
 using System.Text;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using PerfmonAnalyzer.Api.Controllers;
 using PerfmonAnalyzer.Api.Models;
 using PerfmonAnalyzer.Api.Services;
 
@@ -161,5 +164,148 @@ public class CsvImporterTests
         // Assert - DisplayName にヘッダの生文字列が含まれること
         Assert.Contains("Processor", result[0].DisplayName);
         Assert.Contains("Memory", result[1].DisplayName);
+    }
+
+    [Fact]
+    public async Task ImportAsync_EmptyStream_ReturnsEmptyList()
+    {
+        // Arrange
+        var importer = new CsvImporter();
+        using var stream = new MemoryStream();
+
+        // Act
+        var result = await importer.ImportAsync(stream);
+
+        // Assert - 空ストリームの場合は空リストを返す
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public async Task ImportAsync_HeaderOnly_ReturnsEmptyList()
+    {
+        // Arrange - ヘッダのみ（タイムスタンプ列のみ）
+        var headerOnlyCsv = "\"(PDH-CSV 4.0) (Tokyo Standard Time)(540)\"";
+        var importer = new CsvImporter();
+        using var stream = CreateUtf8Stream(headerOnlyCsv);
+
+        // Act
+        var result = await importer.ImportAsync(stream);
+
+        // Assert - ヘッダだけ（カウンタ列なし）の場合は空リストを返す
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public async Task ImportAsync_HeaderWithCountersButNoData_ReturnsCountersWithEmptyDataPoints()
+    {
+        // Arrange - ヘッダにカウンタがあるがデータ行がない
+        var headerOnlyCsv = "\"(PDH-CSV 4.0) (Tokyo Standard Time)(540)\",\"\\\\SERVER\\Processor(_Total)\\% Processor Time\"";
+        var importer = new CsvImporter();
+        using var stream = CreateUtf8Stream(headerOnlyCsv);
+
+        // Act
+        var result = await importer.ImportAsync(stream);
+
+        // Assert
+        Assert.Single(result);
+        Assert.Empty(result[0].DataPoints);
+    }
+}
+
+/// <summary>
+/// FileController のユニットテスト
+/// </summary>
+public class FileControllerTests
+{
+    /// <summary>
+    /// テスト用の ICsvImporter モック
+    /// </summary>
+    private class FakeCsvImporter : ICsvImporter
+    {
+        public Task<List<CounterInfo>> ImportAsync(Stream csvStream, CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(new List<CounterInfo>
+            {
+                new() { MachineName = "SERVER", Category = "Processor", CounterName = "% Processor Time" }
+            });
+        }
+    }
+
+    private static FileController CreateController(ICsvImporter? importer = null)
+    {
+        var controller = new FileController(importer ?? new FakeCsvImporter())
+        {
+            ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext()
+            }
+        };
+        return controller;
+    }
+
+    private static IFormFile CreateFormFile(long length, string fileName = "test.csv")
+    {
+        var stream = new MemoryStream(new byte[Math.Min(length, 1024)]);
+        var file = new FormFile(stream, 0, length, "file", fileName);
+        return file;
+    }
+
+    [Fact]
+    public async Task Upload_NullFile_ReturnsBadRequest()
+    {
+        // Arrange
+        var controller = CreateController();
+
+        // Act
+        var result = await controller.Upload(null!);
+
+        // Assert
+        Assert.IsType<BadRequestObjectResult>(result.Result);
+    }
+
+    [Fact]
+    public async Task Upload_EmptyFile_ReturnsBadRequest()
+    {
+        // Arrange
+        var controller = CreateController();
+        var file = CreateFormFile(0);
+
+        // Act
+        var result = await controller.Upload(file);
+
+        // Assert
+        Assert.IsType<BadRequestObjectResult>(result.Result);
+    }
+
+    [Fact]
+    public async Task Upload_FileTooLarge_ReturnsBadRequest()
+    {
+        // Arrange
+        var controller = CreateController();
+        var file = CreateFormFile(51 * 1024 * 1024); // 51MB
+
+        // Act
+        var result = await controller.Upload(file);
+
+        // Assert
+        var badRequest = Assert.IsType<BadRequestObjectResult>(result.Result);
+        Assert.Contains("50MB", badRequest.Value?.ToString() ?? "");
+    }
+
+    [Fact]
+    public async Task Upload_ValidFile_ReturnsOkWithResult()
+    {
+        // Arrange
+        var controller = CreateController();
+        var file = CreateFormFile(100);
+
+        // Act
+        var result = await controller.Upload(file);
+
+        // Assert
+        var okResult = Assert.IsType<OkObjectResult>(result.Result);
+        var uploadResult = Assert.IsType<UploadResult>(okResult.Value);
+        Assert.NotEmpty(uploadResult.SessionId);
+        Assert.Single(uploadResult.Counters);
     }
 }

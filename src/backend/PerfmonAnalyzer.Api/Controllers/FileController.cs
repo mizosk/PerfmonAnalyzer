@@ -11,6 +11,8 @@ namespace PerfmonAnalyzer.Api.Controllers;
 [Route("api/[controller]")]
 public class FileController : ControllerBase
 {
+    private const long MaxFileSize = 50 * 1024 * 1024; // 50MB
+
     private readonly ICsvImporter _csvImporter;
 
     public FileController(ICsvImporter csvImporter)
@@ -28,13 +30,18 @@ public class FileController : ControllerBase
     {
         if (file == null || file.Length == 0)
         {
-            return BadRequest(new { error = "ファイルが指定されていません。" });
+            return BadRequest(new { error = "ファイルが空です。" });
+        }
+
+        if (file.Length > MaxFileSize)
+        {
+            return BadRequest(new { error = "ファイルサイズが上限（50MB）を超えています。" });
         }
 
         try
         {
             using var stream = file.OpenReadStream();
-            var counters = await _csvImporter.ImportAsync(stream);
+            var counters = await _csvImporter.ImportAsync(stream, HttpContext.RequestAborted);
 
             var result = new UploadResult
             {
