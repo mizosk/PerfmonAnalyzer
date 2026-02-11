@@ -12,9 +12,14 @@ public class SlopeAnalyzer : ISlopeAnalyzer
     /// </summary>
     private const int MinDataPoints = 2;
 
+    /// <summary>
+    /// 浮動小数点のゼロ判定用イプシロン
+    /// </summary>
+    private const double Epsilon = 1e-15;
+
     /// <inheritdoc/>
     public List<SlopeResult> Calculate(
-        List<CounterInfo> counters,
+        IReadOnlyList<CounterInfo> counters,
         DateTime startTime,
         DateTime endTime,
         double thresholdKBPer10Min)
@@ -80,7 +85,7 @@ public class SlopeAnalyzer : ISlopeAnalyzer
         double denominator = n * sumX2 - sumX * sumX;
 
         // 全データポイントが同一時刻の場合（分母が0）
-        if (Math.Abs(denominator) < 1e-15)
+        if (Math.Abs(denominator) < Epsilon)
         {
             return (0.0, double.NaN);
         }
@@ -104,8 +109,8 @@ public class SlopeAnalyzer : ISlopeAnalyzer
         }
 
         // 全てのY値が同じ場合（ssTotal が 0）
-        double rSquared = Math.Abs(ssTotal) < 1e-15
-            ? (Math.Abs(ssResidual) < 1e-15 ? 1.0 : 0.0)
+        double rSquared = Math.Abs(ssTotal) < Epsilon
+            ? (Math.Abs(ssResidual) < Epsilon ? 1.0 : 0.0)
             : 1.0 - ssResidual / ssTotal;
 
         return (slope, rSquared);

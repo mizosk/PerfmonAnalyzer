@@ -16,7 +16,7 @@ public interface ISlopeAnalyzer
     /// <param name="thresholdKBPer10Min">警告閾値（KB/10分）</param>
     /// <returns>各カウンタの傾き分析結果</returns>
     List<SlopeResult> Calculate(
-        List<CounterInfo> counters,
+        IReadOnlyList<CounterInfo> counters,
         DateTime startTime,
         DateTime endTime,
         double thresholdKBPer10Min);

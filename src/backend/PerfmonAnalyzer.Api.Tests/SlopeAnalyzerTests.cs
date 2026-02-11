@@ -75,6 +75,8 @@ public class SlopeAnalyzerTests
         // Assert
         Assert.Equal(0.0, slope, precision: 6);
         // R² は分母が0になるため NaN または 1 になりうる（定数データ）
+        // 定数データの場合、全ポイントが平均と一致するため R² = 1.0 とする
+        Assert.Equal(1.0, rSquared, precision: 6);
     }
 
     [Fact]
@@ -367,6 +369,75 @@ public class SlopeAnalyzerTests
         // Assert: 絶対値が閾値を超えているので Warning
         Assert.Single(results);
         Assert.True(results[0].IsWarning);
+    }
+
+    #endregion
+
+    #region 追加テスト（レビュー指摘対応）
+
+    [Fact]
+    public void Calculate_EmptyCounterList_ReturnsEmptyResults()
+    {
+        // Arrange: 空のカウンターリスト
+        var baseTime = new DateTime(2026, 1, 1, 0, 0, 0);
+        var counters = new List<CounterInfo>();
+
+        // Act
+        var results = _analyzer.Calculate(counters, baseTime, baseTime.AddMinutes(60), thresholdKBPer10Min: 50);
+
+        // Assert
+        Assert.Empty(results);
+    }
+
+    [Fact]
+    public void Calculate_AllDataPointsNaN_SkipsCounter()
+    {
+        // Arrange: 全データポイントが NaN
+        var baseTime = new DateTime(2026, 1, 1, 0, 0, 0);
+        var data = new[]
+        {
+            new DataPoint { Timestamp = baseTime.AddMinutes(0), Value = double.NaN },
+            new DataPoint { Timestamp = baseTime.AddMinutes(1), Value = double.NaN },
+            new DataPoint { Timestamp = baseTime.AddMinutes(2), Value = double.NaN },
+        };
+
+        var counters = new List<CounterInfo>
+        {
+            CreateCounter("TestCounter", data)
+        };
+
+        // Act
+        var results = _analyzer.Calculate(counters, baseTime, baseTime.AddMinutes(2), thresholdKBPer10Min: 50);
+
+        // Assert: 全 NaN なのでフィルタ後にデータ不足 → 結果に含まれない
+        Assert.Empty(results);
+    }
+
+    [Fact]
+    public void Calculate_ExactlyTwoDataPoints_ReturnsResult()
+    {
+        // Arrange: MinDataPoints の境界値（ちょうど 2 ポイント）
+        var baseTime = new DateTime(2026, 1, 1, 0, 0, 0);
+        var data = new[]
+        {
+            new DataPoint { Timestamp = baseTime.AddMinutes(0), Value = 0 },
+            new DataPoint { Timestamp = baseTime.AddMinutes(1), Value = 1024 },
+        };
+
+        var counters = new List<CounterInfo>
+        {
+            CreateCounter("TestCounter", data)
+        };
+
+        // Act
+        var results = _analyzer.Calculate(counters, baseTime, baseTime.AddMinutes(1), thresholdKBPer10Min: 50);
+
+        // Assert: 2 ポイントでも計算が成功し、結果が返る
+        Assert.Single(results);
+        // 傾き 1024 bytes/min → 10 KB/10min
+        Assert.Equal(10.0, results[0].SlopeKBPer10Min, precision: 2);
+        // 2 点の直線 → R² = 1.0
+        Assert.Equal(1.0, results[0].RSquared, precision: 6);
     }
 
     #endregion

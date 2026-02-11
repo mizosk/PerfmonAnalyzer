@@ -30,11 +30,9 @@ export interface TimeRange {
 /** 傾き解析結果 */
 export interface SlopeResult {
   counterName: string;
-  slope: number;
-  intercept: number;
+  slopeKBPer10Min: number;
+  isWarning: boolean;
   rSquared: number;
-  startTime: string;
-  endTime: string;
 }
 
 /** API エラーレスポンス */
