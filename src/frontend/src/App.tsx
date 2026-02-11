@@ -1,33 +1,91 @@
-import './App.css'
-import { FileUpload } from './components/FileUpload'
-import { ChartView } from './components/ChartView'
-import { RangeSelector } from './components/RangeSelector'
-import { SlopeSummary } from './components/SlopeSummary'
-import { ExportButton } from './components/ExportButton'
+import { useState, useRef, useCallback } from 'react';
+import type { Chart } from 'chart.js';
+import './App.css';
+import { FileUpload } from './components/FileUpload';
+import { ChartView } from './components/ChartView';
+import { RangeSelector } from './components/RangeSelector';
+import { ExportButton } from './components/ExportButton';
+import type { CounterInfo, TimeRange, UploadResult } from './types';
+import { getSessionData } from './services/api';
 
-function App() {
-  return (
-    <div className="app">
-      <header>
-        <h1>Perfmon Analyzer</h1>
-      </header>
-      <main>
-        <section className="upload-section">
-          <FileUpload />
-        </section>
-        <section className="chart-section">
-          <ChartView />
-        </section>
-        <section className="controls-section">
-          <RangeSelector />
-          <ExportButton />
-        </section>
-        <section className="results-section">
-          <SlopeSummary />
-        </section>
-      </main>
-    </div>
-  )
+/**
+ * カウンターデータから時間範囲を算出するヘルパー
+ */
+function computeTimeRange(counters: CounterInfo[]): TimeRange | undefined {
+  let minTime = '';
+  let maxTime = '';
+  for (const counter of counters) {
+    for (const dp of counter.dataPoints) {
+      if (!minTime || dp.timestamp < minTime) minTime = dp.timestamp;
+      if (!maxTime || dp.timestamp > maxTime) maxTime = dp.timestamp;
+    }
+  }
+  return minTime && maxTime ? { start: minTime, end: maxTime } : undefined;
 }
 
-export default App
+function App() {
+  const chartRef = useRef<Chart<'line'>>(null);
+
+  // セッション状態
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [counters, setCounters] = useState<CounterInfo[]>([]);
+  const [timeRange, setTimeRange] = useState<TimeRange | undefined>(undefined);
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  /** ファイルアップロード成功時 */
+  const handleUploadSuccess = useCallback((result: UploadResult) => {
+    setSessionId(result.sessionId);
+    setCounters(result.counters);
+    setTimeRange(computeTimeRange(result.counters));
+    setError(null);
+  }, []);
+
+  /** 時間範囲変更時にデータを再取得 */
+  const handleRangeChange = useCallback(async (range: TimeRange) => {
+    if (!sessionId) return;
+    setIsLoading(true);
+    try {
+      const response = await getSessionData(sessionId, range.start, range.end);
+      setCounters(response.counters);
+      setTimeRange(range);
+      setError(null);
+    } catch {
+      setError('データの取得に失敗しました。');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [sessionId]);
+
+  return (
+    <div className="app">
+      <header className="app-header">
+        <h1>Perfmon Analyzer</h1>
+      </header>
+
+      <main className="app-main">
+        <section className="upload-section">
+          <FileUpload onUploadSuccess={handleUploadSuccess} />
+        </section>
+
+        {error && <div className="error-message">{error}</div>}
+
+        {counters.length > 0 && (
+          <>
+            <section className="controls-section">
+              <RangeSelector key={sessionId} initialRange={timeRange} onRangeChange={handleRangeChange} />
+              <ExportButton chartRef={chartRef} />
+            </section>
+
+            <section className="chart-section">
+              {isLoading && <div className="loading-overlay">読み込み中...</div>}
+              <ChartView ref={chartRef} counters={counters} />
+            </section>
+          </>
+        )}
+      </main>
+    </div>
+  );
+}
+
+export default App;

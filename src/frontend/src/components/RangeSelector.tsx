@@ -3,42 +3,59 @@ import { useState, useCallback } from 'react';
 import type { TimeRange } from '../types';
 
 /**
- * 範囲選択コンポーネント
- * 解析対象の時間範囲を選択する
+ * 範囲選択コンポーネントの props
  */
-
 interface RangeSelectorProps {
-  onRangeChange?: (range: TimeRange) => void;
+  initialRange?: TimeRange;
+  onRangeChange: (range: TimeRange) => void;
 }
 
-export const RangeSelector: React.FC<RangeSelectorProps> = ({ onRangeChange }) => {
-  const [start, setStart] = useState('');
-  const [end, setEnd] = useState('');
+/**
+ * ISO 8601 タイムスタンプを datetime-local 入力用の形式に変換する
+ * 例: "2026-02-01T10:30:00.000Z" → "2026-02-01T10:30:00"
+ */
+function toDateTimeLocal(isoString: string): string {
+  return isoString.slice(0, 19);
+}
 
+/**
+ * 範囲選択コンポーネント
+ * 解析対象の時間範囲を選択する
+ * ※ 親コンポーネントで key を変更することで初期値リセットが可能
+ */
+export const RangeSelector: React.FC<RangeSelectorProps> = ({ initialRange, onRangeChange }) => {
+  const [start, setStart] = useState(
+    initialRange ? toDateTimeLocal(initialRange.start) : ''
+  );
+  const [end, setEnd] = useState(
+    initialRange ? toDateTimeLocal(initialRange.end) : ''
+  );
+
+  /** 適用ボタンクリック時 */
   const handleApply = useCallback(() => {
     if (start && end) {
-      onRangeChange?.({ start, end });
+      onRangeChange({ start, end });
     }
   }, [start, end, onRangeChange]);
 
   return (
     <div className="range-selector">
-      <h2>範囲選択</h2>
-      <div>
+      <h3>時間範囲</h3>
+      <div className="range-selector__fields">
         <label>
           開始:
           <input
             type="datetime-local"
+            step="1"
             value={start}
             onChange={(e) => setStart(e.target.value)}
           />
         </label>
-      </div>
-      <div>
         <label>
           終了:
           <input
             type="datetime-local"
+            step="1"
             value={end}
             onChange={(e) => setEnd(e.target.value)}
           />

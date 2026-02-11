@@ -1,42 +1,35 @@
 import type React from 'react';
-import { useState, useCallback } from 'react';
+import { useCallback } from 'react';
+import type { Chart } from 'chart.js';
+
+/**
+ * エクスポートボタンコンポーネントの props
+ */
+interface ExportButtonProps {
+  chartRef: React.RefObject<Chart<'line'> | null>;
+}
 
 /**
  * エクスポートボタンコンポーネント
- * 解析結果を CSV または JSON 形式でダウンロードする
+ * Chart.js のインスタンスからPNG画像をダウンロードする
  */
+export const ExportButton: React.FC<ExportButtonProps> = ({ chartRef }) => {
+  /** PNG画像としてダウンロード */
+  const handleExportPng = useCallback(() => {
+    const chart = chartRef.current;
+    if (!chart) return;
 
-interface ExportButtonProps {
-  onExport?: (format: 'csv' | 'json') => void;
-  disabled?: boolean;
-}
-
-export const ExportButton: React.FC<ExportButtonProps> = ({ onExport, disabled = false }) => {
-  const [isExporting, setIsExporting] = useState(false);
-
-  const handleExport = useCallback(async (format: 'csv' | 'json') => {
-    setIsExporting(true);
-    try {
-      onExport?.(format);
-    } finally {
-      setIsExporting(false);
-    }
-  }, [onExport]);
+    const imageUrl = chart.toBase64Image();
+    const link = document.createElement('a');
+    link.download = 'chart.png';
+    link.href = imageUrl;
+    link.click();
+  }, [chartRef]);
 
   return (
     <div className="export-button">
-      <h2>エクスポート</h2>
-      <button
-        onClick={() => handleExport('csv')}
-        disabled={disabled || isExporting}
-      >
-        CSV エクスポート
-      </button>
-      <button
-        onClick={() => handleExport('json')}
-        disabled={disabled || isExporting}
-      >
-        JSON エクスポート
+      <button onClick={handleExportPng}>
+        PNG エクスポート
       </button>
     </div>
   );

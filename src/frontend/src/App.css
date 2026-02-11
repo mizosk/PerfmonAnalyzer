@@ -1,42 +1,240 @@
-#root {
-  max-width: 1280px;
+/* ===== レイアウト ===== */
+.app {
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 0 1.5rem 2rem;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+/* ===== ヘッダー ===== */
+.app-header {
+  padding: 1rem 0;
+  border-bottom: 2px solid #e2e8f0;
+  margin-bottom: 1.5rem;
+}
+
+.app-header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: #1a202c;
+}
+
+/* ===== メインコンテンツ ===== */
+.app-main {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* ===== ファイルアップロードセクション ===== */
+.upload-section {
+  background: #f7fafc;
+  border: 2px dashed #cbd5e0;
+  border-radius: 8px;
+  padding: 1.5rem;
   text-align: center;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+.file-upload h2 {
+  margin: 0 0 1rem;
+  font-size: 1.1rem;
+  color: #2d3748;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
+.file-upload__controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.file-upload__controls input[type="file"] {
+  font-size: 0.9rem;
+}
+
+.file-upload__controls button {
+  padding: 0.5rem 1.5rem;
+  background: #3182ce;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.file-upload__controls button:hover:not(:disabled) {
+  background: #2b6cb0;
+}
+
+.file-upload__controls button:disabled {
+  background: #a0aec0;
+  cursor: not-allowed;
+}
+
+.file-upload__filename {
+  margin: 0.5rem 0 0;
+  font-size: 0.85rem;
+  color: #718096;
+}
+
+.file-upload__error {
+  margin: 0.5rem 0 0;
+  font-size: 0.85rem;
+  color: #e53e3e;
+  font-weight: 600;
+}
+
+/* ===== コントロールセクション ===== */
+.controls-section {
+  display: flex;
+  align-items: flex-end;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  padding: 1rem;
+  background: #f7fafc;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.range-selector h3 {
+  margin: 0 0 0.5rem;
+  font-size: 0.95rem;
+  color: #2d3748;
+}
+
+.range-selector__fields {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.range-selector label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  color: #4a5568;
+}
+
+.range-selector input[type="datetime-local"] {
+  padding: 0.3rem 0.5rem;
+  border: 1px solid #cbd5e0;
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+
+.range-selector button {
+  margin-top: 0.5rem;
+  padding: 0.4rem 1rem;
+  background: #38a169;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.range-selector button:hover:not(:disabled) {
+  background: #2f855a;
+}
+
+.range-selector button:disabled {
+  background: #a0aec0;
+  cursor: not-allowed;
+}
+
+.export-button {
+  margin-left: auto;
+}
+
+.export-button button {
+  padding: 0.4rem 1rem;
+  background: #805ad5;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.export-button button:hover {
+  background: #6b46c1;
+}
+
+/* ===== グラフセクション ===== */
+.chart-section {
+  position: relative;
+  min-height: 400px;
+  padding: 1rem;
+  background: #ffffff;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.chart-view {
+  height: 100%;
+  min-height: 400px;
+}
+
+.chart-view--empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #a0aec0;
+  font-size: 0.95rem;
+}
+
+.loading-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.8);
+  z-index: 10;
+  font-size: 1rem;
+  color: #4a5568;
+  border-radius: 8px;
+}
+
+/* ===== エラーメッセージ ===== */
+.error-message {
+  padding: 0.75rem 1rem;
+  background: #fed7d7;
+  color: #c53030;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* ===== レスポンシブ ===== */
+@media (max-width: 768px) {
+  .app {
+    padding: 0 1rem 1.5rem;
   }
-  to {
-    transform: rotate(360deg);
+
+  .controls-section {
+    flex-direction: column;
+    align-items: stretch;
   }
-}
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
+  .export-button {
+    margin-left: 0;
   }
-}
 
-.card {
-  padding: 2em;
-}
+  .range-selector__fields {
+    flex-direction: column;
+  }
 
-.read-the-docs {
-  color: #888;
+  .chart-section {
+    min-height: 300px;
+  }
+
+  .chart-view {
+    min-height: 300px;
+  }
 }
