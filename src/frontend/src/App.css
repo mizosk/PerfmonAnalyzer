@@ -237,4 +237,97 @@
   .chart-view {
     min-height: 300px;
   }
+
+  .content-layout {
+    flex-direction: column;
+  }
+}
+
+/* ===== コンテンツレイアウト（グラフ＋サマリの横並び） ===== */
+.content-layout {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+}
+
+.content-layout .chart-section {
+  flex: 2;
+  min-width: 0;
+}
+
+.content-layout .summary-section {
+  flex: 1;
+  min-width: 320px;
+  position: relative;
+  background: #ffffff;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  padding: 1rem;
+}
+
+/* ===== 傾きサマリセクション ===== */
+.slope-summary__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.slope-summary__header h2 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #1a202c;
+}
+
+.slope-summary__threshold {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  color: #4a5568;
+}
+
+.slope-summary__threshold input[type="number"] {
+  width: 80px;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid #cbd5e0;
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+
+.slope-summary__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.slope-summary__table th,
+.slope-summary__table td {
+  padding: 0.5rem 0.6rem;
+  text-align: left;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.slope-summary__table th {
+  background: #f7fafc;
+  color: #4a5568;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.slope-summary__table td {
+  white-space: nowrap;
+}
+
+/* ===== 判定行のスタイル ===== */
+.slope-summary__table tr.warning {
+  background-color: #ffebee;
+  color: #c62828;
+}
+
+.slope-summary__table tr.ok {
+  background-color: #e8f5e9;
+  color: #2e7d32;
 }

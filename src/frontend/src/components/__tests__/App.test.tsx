@@ -23,14 +23,14 @@ vi.mock('react-chartjs-2', () => ({
 vi.mock('../../services/api', () => ({
   uploadCsv: vi.fn(),
   getSessionData: vi.fn(),
+  analyzeSlopeForSession: vi.fn().mockResolvedValue({ results: [] }),
 }));
 
 import App from '../../App';
-import { uploadCsv, getSessionData } from '../../services/api';
-import type { UploadResult, DataResponse } from '../../types';
+import { uploadCsv } from '../../services/api';
+import type { UploadResult } from '../../types';
 
 const mockUploadCsv = vi.mocked(uploadCsv);
-const mockGetSessionData = vi.mocked(getSessionData);
 
 /** ファイル入力要素を取得するヘルパー */
 function getFileInput(): HTMLInputElement {

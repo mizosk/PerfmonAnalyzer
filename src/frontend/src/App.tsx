@@ -5,8 +5,9 @@ import { FileUpload } from './components/FileUpload';
 import { ChartView } from './components/ChartView';
 import { RangeSelector } from './components/RangeSelector';
 import { ExportButton } from './components/ExportButton';
-import type { CounterInfo, TimeRange, UploadResult } from './types';
-import { getSessionData } from './services/api';
+import { SlopeSummary } from './components/SlopeSummary';
+import type { CounterInfo, TimeRange, SlopeResult, UploadResult } from './types';
+import { getSessionData, analyzeSlopeForSession } from './services/api';
 
 /**
  * カウンターデータから時間範囲を算出するヘルパー
@@ -33,13 +34,37 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
+  // 傾き分析状態
+  const [slopeResults, setSlopeResults] = useState<SlopeResult[]>([]);
+  const [threshold, setThreshold] = useState(50);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+
+  /** 傾き分析を実行 */
+  const runSlopeAnalysis = useCallback(async (sid: string, range: TimeRange, th: number) => {
+    setIsAnalyzing(true);
+    try {
+      const response = await analyzeSlopeForSession(sid, range, th);
+      setSlopeResults(response.results);
+    } catch {
+      // 分析エラーは致命的ではないので結果をクリア
+      setSlopeResults([]);
+    } finally {
+      setIsAnalyzing(false);
+    }
+  }, []);
+
   /** ファイルアップロード成功時 */
   const handleUploadSuccess = useCallback((result: UploadResult) => {
     setSessionId(result.sessionId);
     setCounters(result.counters);
-    setTimeRange(computeTimeRange(result.counters));
+    const range = computeTimeRange(result.counters);
+    setTimeRange(range);
     setError(null);
-  }, []);
+    setSlopeResults([]);
+    if (range) {
+      runSlopeAnalysis(result.sessionId, range, threshold);
+    }
+  }, [runSlopeAnalysis, threshold]);
 
   /** 時間範囲変更時にデータを再取得 */
   const handleRangeChange = useCallback(async (range: TimeRange) => {
@@ -50,12 +75,18 @@ function App() {
       setCounters(response.counters);
       setTimeRange(range);
       setError(null);
+      runSlopeAnalysis(sessionId, range, threshold);
     } catch {
       setError('データの取得に失敗しました。');
     } finally {
       setIsLoading(false);
     }
-  }, [sessionId]);
+  }, [sessionId, runSlopeAnalysis, threshold]);
+
+  /** 閾値変更時 */
+  const handleThresholdChange = useCallback((value: number) => {
+    setThreshold(value);
+  }, []);
 
   return (
     <div className="app">
@@ -77,10 +108,21 @@ function App() {
               <ExportButton chartRef={chartRef} />
             </section>
 
-            <section className="chart-section">
-              {isLoading && <div className="loading-overlay">読み込み中...</div>}
-              <ChartView ref={chartRef} counters={counters} />
-            </section>
+            <div className="content-layout">
+              <section className="chart-section">
+                {isLoading && <div className="loading-overlay">読み込み中...</div>}
+                <ChartView ref={chartRef} counters={counters} />
+              </section>
+
+              <section className="summary-section">
+                {isAnalyzing && <div className="loading-overlay">分析中...</div>}
+                <SlopeSummary
+                  results={slopeResults}
+                  threshold={threshold}
+                  onThresholdChange={handleThresholdChange}
+                />
+              </section>
+            </div>
           </>
         )}
       </main>
