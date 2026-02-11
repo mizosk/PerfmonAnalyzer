@@ -12,10 +12,12 @@ namespace PerfmonAnalyzer.Api.Controllers;
 public class AnalysisController : ControllerBase
 {
     private readonly ISlopeAnalyzer _slopeAnalyzer;
+    private readonly IDataService _dataService;
 
-    public AnalysisController(ISlopeAnalyzer slopeAnalyzer)
+    public AnalysisController(ISlopeAnalyzer slopeAnalyzer, IDataService dataService)
     {
         _slopeAnalyzer = slopeAnalyzer;
+        _dataService = dataService;
     }
 
     /// <summary>
@@ -36,11 +38,22 @@ public class AnalysisController : ControllerBase
             return BadRequest(new { error = "StartTime は EndTime より前でなければなりません。" });
         }
 
-        // TODO: SessionId からカウンタデータを取得する仕組みが必要
-        // 現時点ではセッション管理は未実装のため、空のレスポンスを返す
+        if (!_dataService.SessionExists(request.SessionId))
+        {
+            return NotFound(new { error = $"Session {request.SessionId} が見つかりません。" });
+        }
+
+        var counters = _dataService.GetCounters(request.SessionId, request.StartTime, request.EndTime);
+
+        var results = _slopeAnalyzer.Calculate(
+            counters,
+            request.StartTime,
+            request.EndTime,
+            request.ThresholdKBPer10Min);
+
         var response = new SlopeResponse
         {
-            Results = []
+            Results = results,
         };
 
         return Ok(response);

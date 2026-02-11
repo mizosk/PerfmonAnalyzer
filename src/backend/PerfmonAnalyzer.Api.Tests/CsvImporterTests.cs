@@ -233,7 +233,8 @@ public class FileControllerTests
 
     private static FileController CreateController(ICsvImporter? importer = null)
     {
-        var controller = new FileController(importer ?? new FakeCsvImporter())
+        var dataService = new InMemoryDataService();
+        var controller = new FileController(importer ?? new FakeCsvImporter(), dataService)
         {
             ControllerContext = new ControllerContext
             {

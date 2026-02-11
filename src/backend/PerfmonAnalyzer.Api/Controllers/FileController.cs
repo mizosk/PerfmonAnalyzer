@@ -14,10 +14,12 @@ public class FileController : ControllerBase
     private const long MaxFileSize = 50 * 1024 * 1024; // 50MB
 
     private readonly ICsvImporter _csvImporter;
+    private readonly IDataService _dataService;
 
-    public FileController(ICsvImporter csvImporter)
+    public FileController(ICsvImporter csvImporter, IDataService dataService)
     {
         _csvImporter = csvImporter;
+        _dataService = dataService;
     }
 
     /// <summary>
@@ -43,9 +45,11 @@ public class FileController : ControllerBase
             using var stream = file.OpenReadStream();
             var counters = await _csvImporter.ImportAsync(stream, HttpContext.RequestAborted);
 
+            var sessionId = _dataService.CreateSession(counters);
+
             var result = new UploadResult
             {
-                SessionId = Guid.NewGuid().ToString(),
+                SessionId = sessionId,
                 Counters = counters,
             };
 
