@@ -50,6 +50,11 @@ logs/
 # Build results
 build/
 out/
+
+# Deployment / Publish
+publish/
+**/wwwroot/
+
 # Test results
 TestResults/
 *.trx
