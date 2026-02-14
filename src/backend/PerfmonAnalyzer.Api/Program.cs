@@ -36,12 +36,25 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// CORS を有効化
-app.UseCors("AllowReactDev");
+// CORS を有効化（開発環境のみ）
+if (app.Environment.IsDevelopment())
+{
+    app.UseCors("AllowReactDev");
+}
+
+// 静的ファイルの配信を有効化（本番環境用）
+// wwwroot フォルダ内のファイル（HTML, CSS, JS等）をWebで公開
+app.UseDefaultFiles(); // index.html を自動で返す
+app.UseStaticFiles();  // 静的ファイルを配信
 
 app.UseAuthorization();
 
 app.MapControllers();
+
+// SPA（React）のフォールバック設定
+// どのURLにアクセスしても、APIでなければindex.htmlを返す
+// これにより、Reactのルーティングが正しく動作する
+app.MapFallbackToFile("index.html");
 
 app.Run();
 
