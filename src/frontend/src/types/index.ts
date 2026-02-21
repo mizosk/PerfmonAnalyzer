@@ -60,3 +60,13 @@ export interface SlopeResponse {
 export interface ApiError {
   error: string;
 }
+
+/** レポート生成リクエスト（バックエンド ReportRequest に対応） */
+export interface ReportRequest {
+  sessionId: string;
+  startTime: string;
+  endTime: string;
+  thresholdKBPer10Min: number;
+  chartImageBase64: string;
+  format: 'html' | 'md';
+}

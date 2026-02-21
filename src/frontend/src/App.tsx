@@ -5,6 +5,7 @@ import { FileUpload } from './components/FileUpload';
 import { ChartView } from './components/ChartView';
 import { RangeSelector } from './components/RangeSelector';
 import { ExportButton } from './components/ExportButton';
+import { ReportButton } from './components/ReportButton';
 import { SlopeSummary } from './components/SlopeSummary';
 import type { CounterInfo, TimeRange, SlopeResult, UploadResult } from './types';
 import { getSessionData, analyzeSlopeForSession } from './services/api';
@@ -106,6 +107,13 @@ function App() {
             <section className="controls-section">
               <RangeSelector key={sessionId} initialRange={timeRange} onRangeChange={handleRangeChange} />
               <ExportButton chartRef={chartRef} />
+              <ReportButton
+                chartRef={chartRef}
+                sessionId={sessionId}
+                startTime={timeRange?.start ?? ''}
+                endTime={timeRange?.end ?? ''}
+                threshold={threshold}
+              />
             </section>
 
             <div className="content-layout">
