@@ -53,6 +53,7 @@ out/
 
 # Deployment / Publish
 publish/
+publish-linux/
 **/wwwroot/
 
 # Test results
@@ -60,3 +61,4 @@ TestResults/
 *.trx
 coverage/
 *.coveragexml
+scripts/nginx-perfmonanalyzer.conf
