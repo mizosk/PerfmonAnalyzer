@@ -353,5 +353,92 @@ public class ReportGeneratorTests
         Assert.Contains("<html", result.Content);
     }
 
+    [Fact]
+    public void GenerateReport_NullFormat_DefaultsToHtml()
+    {
+        // Arrange
+        var counters = CreateTestCounters();
+        var slopeResults = CreateTestSlopeResults();
+
+        // Act
+        var result = _generator.GenerateReport(
+            counters, slopeResults, TestStartTime, TestEndTime, TestThreshold, TestChartImage, null!);
+
+        // Assert
+        Assert.Equal("text/html", result.ContentType);
+        Assert.Contains("<html", result.Content);
+    }
+
+    [Fact]
+    public void GenerateReport_Base64WithoutPrefix_AddsPrefix()
+    {
+        // Arrange
+        var counters = CreateTestCounters();
+        var slopeResults = CreateTestSlopeResults();
+        var base64NoPrefx = "iVBORw0KGgoAAAANSUhEUg==";
+
+        // Act
+        var result = _generator.GenerateReport(
+            counters, slopeResults, TestStartTime, TestEndTime, TestThreshold, base64NoPrefx, "html");
+
+        // Assert
+        Assert.Contains("data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==", result.Content);
+    }
+
+    [Fact]
+    public void GenerateReport_HtmlFormat_InvalidBase64_ShowsFallback()
+    {
+        // Arrange
+        var counters = CreateTestCounters();
+        var slopeResults = CreateTestSlopeResults();
+        var maliciousValue = "javascript:alert('xss')";
+
+        // Act
+        var result = _generator.GenerateReport(
+            counters, slopeResults, TestStartTime, TestEndTime, TestThreshold, maliciousValue, "html");
+
+        // Assert
+        Assert.DoesNotContain("<img", result.Content);
+        Assert.Contains("グラフ画像の形式が不正です", result.Content);
+    }
+
+    [Fact]
+    public void GenerateReport_MdFormat_InvalidBase64_ShowsFallback()
+    {
+        // Arrange
+        var counters = CreateTestCounters();
+        var slopeResults = CreateTestSlopeResults();
+        var maliciousValue = "javascript:alert('xss')";
+
+        // Act
+        var result = _generator.GenerateReport(
+            counters, slopeResults, TestStartTime, TestEndTime, TestThreshold, maliciousValue, "md");
+
+        // Assert
+        Assert.DoesNotContain("![", result.Content);
+        Assert.Contains("グラフ画像の形式が不正です", result.Content);
+    }
+
+    [Fact]
+    public void GenerateReport_MdFormat_MetaInfoIsBulletList()
+    {
+        // Arrange
+        var counters = CreateTestCounters();
+        var slopeResults = CreateTestSlopeResults();
+
+        // Act
+        var result = _generator.GenerateReport(
+            counters, slopeResults, TestStartTime, TestEndTime, TestThreshold, TestChartImage, "md");
+
+        // Assert
+        // メタ情報が ## 見出しではなく箇条書きになっていることを確認
+        Assert.Contains("- **生成日時:**", result.Content);
+        Assert.Contains("- **分析期間:**", result.Content);
+        Assert.Contains("- **閾値:**", result.Content);
+        Assert.DoesNotContain("## 生成日時:", result.Content);
+        Assert.DoesNotContain("## 分析期間:", result.Content);
+        Assert.DoesNotContain("## 閾値:", result.Content);
+    }
+
     #endregion
 }

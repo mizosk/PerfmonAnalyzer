@@ -27,12 +27,14 @@ export const ReportButton: React.FC<ReportButtonProps> = ({
 }) => {
   const [format, setFormat] = useState<'html' | 'md'>('html');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   /** レポートを生成してダウンロード */
   const handleGenerateReport = useCallback(async () => {
     if (!sessionId) return;
 
     setIsGenerating(true);
+    setError(null);
     try {
       // Chart.js からグラフ画像を取得
       const chart = chartRef.current;
@@ -56,8 +58,9 @@ export const ReportButton: React.FC<ReportButtonProps> = ({
       link.href = url;
       link.click();
       URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error('レポート生成に失敗しました:', error);
+    } catch (err) {
+      console.error('レポート生成に失敗しました:', err);
+      setError('レポート生成に失敗しました。もう一度お試しください。');
     } finally {
       setIsGenerating(false);
     }
@@ -79,6 +82,7 @@ export const ReportButton: React.FC<ReportButtonProps> = ({
       >
         {isGenerating ? '生成中...' : 'レポート生成'}
       </button>
+      {error && <p className="report-error" role="alert">{error}</p>}
     </div>
   );
 };

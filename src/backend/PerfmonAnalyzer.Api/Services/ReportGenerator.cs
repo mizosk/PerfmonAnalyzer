@@ -91,7 +91,14 @@ public class ReportGenerator : IReportGenerator
         if (!string.IsNullOrEmpty(chartImageBase64))
         {
             var imgSrc = chartImageBase64.StartsWith("data:") ? chartImageBase64 : $"data:image/png;base64,{chartImageBase64}";
-            sb.AppendLine($"<div class=\"chart\"><img src=\"{imgSrc}\" alt=\"パフォーマンスグラフ\" /></div>");
+            if (IsValidBase64ImageSrc(imgSrc))
+            {
+                sb.AppendLine($"<div class=\"chart\"><img src=\"{imgSrc}\" alt=\"パフォーマンスグラフ\" /></div>");
+            }
+            else
+            {
+                sb.AppendLine("<p>グラフ画像の形式が不正です。</p>");
+            }
         }
         else
         {
@@ -174,9 +181,9 @@ public class ReportGenerator : IReportGenerator
         // タイトル
         sb.AppendLine("# Perfmon Analyzer レポート");
         sb.AppendLine();
-        sb.AppendLine($"## 生成日時: {DateTime.Now:yyyy-MM-dd HH:mm}");
-        sb.AppendLine($"## 分析期間: {startTime:yyyy-MM-dd HH:mm} ～ {endTime:yyyy-MM-dd HH:mm}");
-        sb.AppendLine($"## 閾値: {thresholdKBPer10Min} KB/10min");
+        sb.AppendLine($"- **生成日時:** {DateTime.Now:yyyy-MM-dd HH:mm}");
+        sb.AppendLine($"- **分析期間:** {startTime:yyyy-MM-dd HH:mm} ～ {endTime:yyyy-MM-dd HH:mm}");
+        sb.AppendLine($"- **閾値:** {thresholdKBPer10Min} KB/10min");
         sb.AppendLine();
 
         // サマリ
@@ -192,7 +199,14 @@ public class ReportGenerator : IReportGenerator
         if (!string.IsNullOrEmpty(chartImageBase64))
         {
             var imgSrc = chartImageBase64.StartsWith("data:") ? chartImageBase64 : $"data:image/png;base64,{chartImageBase64}";
-            sb.AppendLine($"![パフォーマンスグラフ]({imgSrc})");
+            if (IsValidBase64ImageSrc(imgSrc))
+            {
+                sb.AppendLine($"![パフォーマンスグラフ]({imgSrc})");
+            }
+            else
+            {
+                sb.AppendLine("グラフ画像の形式が不正です。");
+            }
         }
         else
         {
@@ -270,6 +284,16 @@ public class ReportGenerator : IReportGenerator
         }
 
         return (displayName, displayName);
+    }
+
+    /// <summary>
+    /// Base64画像のdata URIが安全なパターンにマッチするか検証する
+    /// </summary>
+    private static bool IsValidBase64ImageSrc(string src)
+    {
+        return System.Text.RegularExpressions.Regex.IsMatch(
+            src,
+            @"^data:image/(png|jpeg|gif|svg\+xml);base64,[A-Za-z0-9+/=]+$");
     }
 
     /// <summary>

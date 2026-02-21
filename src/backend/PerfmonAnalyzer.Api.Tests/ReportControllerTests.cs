@@ -190,4 +190,79 @@ public class ReportControllerTests
         Assert.Equal("text/markdown", fileResult.ContentType);
         Assert.Equal("report.md", fileResult.FileDownloadName);
     }
+
+    [Fact]
+    public void GenerateReport_StartTimeEqualsEndTime_ReturnsBadRequest()
+    {
+        // Arrange
+        var sameTime = new DateTime(2026, 1, 1);
+        var request = new ReportRequest
+        {
+            SessionId = "test-session",
+            StartTime = sameTime,
+            EndTime = sameTime,
+        };
+
+        // Act
+        var result = _controller.GenerateReport(request);
+
+        // Assert
+        Assert.IsType<BadRequestObjectResult>(result);
+    }
+
+    [Fact]
+    public void GenerateReport_Base64ExceedsMaxSize_ReturnsBadRequest()
+    {
+        // Arrange
+        var largeBase64 = new string('A', 10 * 1024 * 1024 + 1);
+        var request = new ReportRequest
+        {
+            SessionId = "test-session",
+            StartTime = new DateTime(2026, 1, 1),
+            EndTime = new DateTime(2026, 1, 2),
+            ChartImageBase64 = largeBase64,
+        };
+
+        // Act
+        var result = _controller.GenerateReport(request);
+
+        // Assert
+        Assert.IsType<BadRequestObjectResult>(result);
+    }
+
+    [Fact]
+    public void GenerateReport_Base64WithinMaxSize_DoesNotReturnBadRequest()
+    {
+        // Arrange
+        var sessionId = "test-session";
+        var startTime = new DateTime(2026, 1, 1);
+        var endTime = new DateTime(2026, 1, 2);
+        var validBase64 = "data:image/png;base64,iVBORw0KGgo=";
+
+        var request = new ReportRequest
+        {
+            SessionId = sessionId,
+            StartTime = startTime,
+            EndTime = endTime,
+            ChartImageBase64 = validBase64,
+        };
+
+        var counters = new List<CounterInfo>();
+        var slopeResults = new List<SlopeResult>();
+
+        _mockDataService.Setup(s => s.GetCounters(sessionId, startTime, endTime)).Returns(counters);
+        _mockSlopeAnalyzer
+            .Setup(a => a.Calculate(counters, startTime, endTime, 50))
+            .Returns(slopeResults);
+        _mockReportGenerator
+            .Setup(g => g.GenerateReport(
+                counters, slopeResults, startTime, endTime, 50, validBase64, "html"))
+            .Returns(new ReportResponse { Content = "test", FileName = "test.html", ContentType = "text/html" });
+
+        // Act
+        var result = _controller.GenerateReport(request);
+
+        // Assert
+        Assert.IsNotType<BadRequestObjectResult>(result);
+    }
 }

@@ -44,6 +44,13 @@ public class ReportController : ControllerBase
             return BadRequest(new { error = "StartTime は EndTime より前でなければなりません。" });
         }
 
+        // Base64 サイズ制限（10MB）
+        const int maxBase64Length = 10 * 1024 * 1024;
+        if (!string.IsNullOrEmpty(request.ChartImageBase64) && request.ChartImageBase64.Length > maxBase64Length)
+        {
+            return BadRequest(new { error = "チャート画像のサイズが上限（10MB）を超えています。" });
+        }
+
         try
         {
             // 1. カウンターデータを取得

@@ -119,4 +119,43 @@ describe('ReportButton', () => {
       }));
     });
   });
+
+  it('レポート生成失敗時にエラーメッセージを表示する', async () => {
+    const mockGenerateReport = vi.mocked(generateReport);
+    mockGenerateReport.mockRejectedValueOnce(new Error('Server Error'));
+
+    render(<ReportButton {...defaultProps} />);
+    const button = screen.getByRole('button', { name: /レポート生成/ });
+    fireEvent.click(button);
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toHaveTextContent('レポート生成に失敗しました。もう一度お試しください。');
+    });
+  });
+
+  it('再度レポート生成を試みるとエラーメッセージがクリアされる', async () => {
+    const mockGenerateReport = vi.mocked(generateReport);
+    mockGenerateReport.mockRejectedValueOnce(new Error('Server Error'));
+
+    render(<ReportButton {...defaultProps} />);
+    const button = screen.getByRole('button', { name: /レポート生成/ });
+    fireEvent.click(button);
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toBeInTheDocument();
+    });
+
+    // 2回目はBlobを返す
+    mockGenerateReport.mockResolvedValueOnce(new Blob(['<html>test</html>'], { type: 'text/html' }));
+    const mockCreateObjectURL = vi.fn(() => 'blob:mock-url');
+    const mockRevokeObjectURL = vi.fn();
+    global.URL.createObjectURL = mockCreateObjectURL;
+    global.URL.revokeObjectURL = mockRevokeObjectURL;
+
+    fireEvent.click(button);
+
+    await waitFor(() => {
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    });
+  });
 });

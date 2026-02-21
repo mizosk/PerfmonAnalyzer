@@ -6,10 +6,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 
 // アプリケーションサービスの登録
-builder.Services.AddScoped<ICsvImporter, CsvImporter>();
+builder.Services.AddSingleton<ICsvImporter, CsvImporter>();
 builder.Services.AddSingleton<ISlopeAnalyzer, SlopeAnalyzer>();
 builder.Services.AddSingleton<IDataService, InMemoryDataService>();
-builder.Services.AddScoped<IReportGenerator, ReportGenerator>();
+builder.Services.AddSingleton<IReportGenerator, ReportGenerator>();
 
 // CORS設定 - React開発サーバー（http://localhost:5173）からのアクセスを許可
 builder.Services.AddCors(options =>
