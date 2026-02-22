@@ -76,6 +76,11 @@
 | **CsvImporter** | CSV パース、データモデル変換、エンコーディング自動判定 |
 | **DataService** | セッション単位のデータ保持、フィルタリング |
 | **SlopeAnalyzer** | 線形回帰（OLS）による傾き算出、閾値判定 |
+| **ReportGenerator** | レポート生成のファサード。Strategy パターンにより出力形式ごとの生成ロジックを委譲 |
+| **IReportFormatStrategy** | レポート出力形式の Strategy インターフェース |
+| **HtmlReportStrategy** | HTML 形式のレポート生成 Strategy |
+| **MarkdownReportStrategy** | Markdown 形式のレポート生成 Strategy |
+| **ReportUtilities** | レポート生成で共通利用するユーティリティ（カウンタ名解析、Base64 検証等） |
 
 ### 2.4 ドメインモデル層（Models）
 
@@ -348,3 +353,4 @@ HTTP リクエスト → Controller → Service → Response
 | バージョン | 日付 | 変更内容 |
 |------------|------|----------|
 | 1.0 | 2026/01/31 | 初版作成 |
+| 1.1 | 2026/02/22 | ReportGenerator に Strategy パターン適用（Issue #6） |
