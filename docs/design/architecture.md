@@ -1,6 +1,6 @@
 # アーキテクチャ設計書: PerfmonAnalyzer
 
-**バージョン**: 1.0  
+**バージョン**: 1.1  
 **作成日**: 2026年1月31日
 
 ---
@@ -33,6 +33,9 @@
 │  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐   │   │
 │  │  │ CsvImporter  │  │ DataService  │  │SlopeAnalyzer │   │   │
 │  │  └──────────────┘  └──────────────┘  └──────────────┘   │   │
+│  │  ┌──────────────┐  ┌──────────────┐                       │   │
+│  │  │ReportGenerator│  │ReportStrategy│                       │   │
+│  │  └──────────────┘  └──────────────┘                       │   │
 │  └──────────────────────────────────────────────────────────┘   │
 │  ┌──────────────────────────────────────────────────────────┐   │
 │  │                      Models                               │   │
@@ -68,6 +71,7 @@
 | **FileController** | `POST /api/file/upload` | CSV アップロード受付 |
 | **DataController** | `GET /api/data/{sessionId}` | 読み込み済みデータ取得 |
 | **AnalysisController** | `POST /api/analysis/slope` | 傾き算出リクエスト |
+| **ReportController** | `POST /api/report/generate` | レポート生成・ダウンロード |
 
 ### 2.3 ビジネスロジック層（Services）
 
@@ -222,15 +226,24 @@ src/
 │   │   ├── Controllers/
 │   │   │   ├── FileController.cs
 │   │   │   ├── DataController.cs
-│   │   │   └── AnalysisController.cs
+│   │   │   ├── AnalysisController.cs
+│   │   │   └── ReportController.cs
 │   │   ├── Services/
 │   │   │   ├── CsvImporter.cs
 │   │   │   ├── DataService.cs
-│   │   │   └── SlopeAnalyzer.cs
+│   │   │   ├── SlopeAnalyzer.cs
+│   │   │   ├── IReportGenerator.cs
+│   │   │   ├── ReportGenerator.cs
+│   │   │   ├── IReportFormatStrategy.cs
+│   │   │   ├── HtmlReportStrategy.cs
+│   │   │   ├── MarkdownReportStrategy.cs
+│   │   │   └── ReportUtilities.cs
 │   │   ├── Models/
 │   │   │   ├── DataPoint.cs
 │   │   │   ├── CounterInfo.cs
-│   │   │   └── SlopeResult.cs
+│   │   │   ├── SlopeResult.cs
+│   │   │   ├── ReportRequest.cs
+│   │   │   └── ReportResponse.cs
 │   │   ├── Program.cs
 │   │   └── appsettings.json
 │   └── PerfmonAnalyzer.Api.sln
@@ -311,6 +324,26 @@ Response 200:
     { "counterName": "Process(app)\\Handle Count", "slopeKBPer10Min": 0.5, "isWarning": false, "rSquared": 0.45 }
   ]
 }
+```
+
+### 6.4 レポート生成
+
+```
+POST /api/report/generate
+Content-Type: application/json
+{
+  "sessionId": "abc123",
+  "startTime": "2026-01-15T10:00:00",
+  "endTime": "2026-01-15T20:00:00",
+  "thresholdKBPer10Min": 50,
+  "chartImageBase64": "data:image/png;base64,...",
+  "format": "html"
+}
+
+Response 200:
+Content-Type: text/html (or text/markdown)
+Content-Disposition: attachment; filename="perfmon_report_20260115_100000.html"
+(レポートコンテンツ)
 ```
 
 ---
