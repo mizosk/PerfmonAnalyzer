@@ -86,6 +86,14 @@ const [threshold, setThreshold] = useState(50);
 }
 ```
 
+#### テーブルレイアウト（Issue #8 で追加）
+
+- テーブルは `table-layout: fixed` で列幅を均等化し、`overflow-x: auto` のラッパーで横スクロールに対応
+- 列ごとにCSSクラスを付与し、データ特性に応じたスタイルを適用:
+  - `slope-summary__col-counter`: カウンタ名列。`word-break: break-all` で長い名前を折り返し
+  - `slope-summary__col-value`: 数値列（傾き・R²）。右寄せ・折り返し禁止
+  - `slope-summary__col-status`: 判定列。中央寄せ・折り返し禁止
+
 ### 4. App.tsx への統合
 
 グラフと傾きサマリを並べて表示するレイアウトを実装。
