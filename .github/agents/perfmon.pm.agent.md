@@ -1,7 +1,7 @@
 ---
 name: perfmon.pm
 description: PM(プロジェクトマネージャー)エージェント。GitHub Issueによるタスク管理とワークフローの調整を担当します。
-tools: ['execute/runInTerminal', 'execute/getTerminalOutput', 'read/readFile', 'edit/createFile', 'edit/editFiles', 'agent/runSubagent', 'todo']
+tools: ['execute/runInTerminal', 'execute/getTerminalOutput', 'read/readFile', 'edit/createFile', 'edit/editFiles', 'agent/runSubagent', 'agent', 'todo']
 agents: ["*"]
 handoffs:
   - label: 🏗️設計依頼
