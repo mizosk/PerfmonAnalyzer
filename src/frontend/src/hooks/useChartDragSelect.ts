@@ -176,10 +176,8 @@ export function useChartDragSelect({
       }
     };
 
-    const handleMouseUp = () => {
-      if (!dragStateRef.current.isDragging) return;
-
-      const { startX, currentX } = dragStateRef.current;
+    /** ドラッグ確定の共通処理: pixel座標からタイムスタンプ変換→スナップ→コールバック */
+    const finalizeDragSelection = (startX: number, currentX: number) => {
       dragStateRef.current.isDragging = false;
 
       // 最小ドラッグ幅チェック
@@ -208,11 +206,23 @@ export function useChartDragSelect({
       chart.draw();
     };
 
+    const handleMouseUp = () => {
+      if (!dragStateRef.current.isDragging) return;
+      const { startX, currentX } = dragStateRef.current;
+      finalizeDragSelection(startX, currentX);
+    };
+
     const handleMouseLeave = () => {
-      if (dragStateRef.current.isDragging) {
-        dragStateRef.current.isDragging = false;
-        chart.draw();
-      }
+      if (!dragStateRef.current.isDragging) return;
+      const { startX, currentX } = dragStateRef.current;
+      const chartArea = chart.chartArea;
+
+      // currentX をプロットエリアの端にクランプして確定
+      const clampedCurrentX = Math.max(
+        chartArea.left,
+        Math.min(currentX, chartArea.right)
+      );
+      finalizeDragSelection(startX, clampedCurrentX);
     };
 
     canvas.addEventListener('mousedown', handleMouseDown);
