@@ -5,6 +5,7 @@ import type { TimeRange } from '../../types';
 
 describe('RangeSelector', () => {
   const mockOnRangeChange = vi.fn();
+  const mockOnReset = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -123,5 +124,47 @@ describe('RangeSelector', () => {
       start: '2026-02-01T08:00',
       end: '2026-02-01T20:00',
     });
+  });
+
+  it('range prop が変更されると入力フィールドが同期される', () => {
+    const range1: TimeRange = {
+      start: '2026-02-01T10:00:00',
+      end: '2026-02-01T12:00:00',
+    };
+    const range2: TimeRange = {
+      start: '2026-02-01T14:00:00',
+      end: '2026-02-01T16:00:00',
+    };
+
+    const { rerender } = render(<RangeSelector range={range1} onRangeChange={mockOnRangeChange} />);
+
+    const startInput = screen.getByLabelText('開始:') as HTMLInputElement;
+    const endInput = screen.getByLabelText('終了:') as HTMLInputElement;
+    expect(startInput.value).toMatch(/^2026-02-01T10:00/);
+    expect(endInput.value).toMatch(/^2026-02-01T12:00/);
+
+    // range prop を変更して再レンダリング
+    rerender(<RangeSelector range={range2} onRangeChange={mockOnRangeChange} />);
+
+    expect(startInput.value).toMatch(/^2026-02-01T14:00/);
+    expect(endInput.value).toMatch(/^2026-02-01T16:00/);
+  });
+
+  it('onReset が提供されている場合、リセットボタンを表示する', () => {
+    render(<RangeSelector onRangeChange={mockOnRangeChange} onReset={mockOnReset} />);
+    expect(screen.getByRole('button', { name: 'リセット' })).toBeInTheDocument();
+  });
+
+  it('onReset が未提供の場合、リセットボタンを表示しない', () => {
+    render(<RangeSelector onRangeChange={mockOnRangeChange} />);
+    expect(screen.queryByRole('button', { name: 'リセット' })).not.toBeInTheDocument();
+  });
+
+  it('リセットボタンをクリックすると onReset が呼び出される', () => {
+    render(<RangeSelector onRangeChange={mockOnRangeChange} onReset={mockOnReset} />);
+
+    const resetButton = screen.getByRole('button', { name: 'リセット' });
+    fireEvent.click(resetButton);
+    expect(mockOnReset).toHaveBeenCalledTimes(1);
   });
 });

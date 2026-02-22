@@ -21,6 +21,16 @@ vi.mock('react-chartjs-2', () => ({
   },
 }));
 
+// プラグインと hook をモック
+vi.mock('../../plugins/chartDragSelectPlugin', () => ({
+  dragSelectPlugin: { id: 'dragSelect', afterDraw: vi.fn() },
+}));
+
+vi.mock('../../hooks/useChartDragSelect', () => ({
+  useChartDragSelect: vi.fn(),
+  findNearestLabelIndex: vi.fn().mockReturnValue(0),
+}));
+
 /** テスト用のカウンターデータを生成 */
 function createMockCounter(name: string, dataCount: number): CounterInfo {
   return {

@@ -146,6 +146,20 @@
   cursor: not-allowed;
 }
 
+.range-selector__buttons {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.range-selector__reset {
+  background: #718096 !important;
+}
+
+.range-selector__reset:hover {
+  background: #4a5568 !important;
+}
+
 .export-button {
   margin-left: auto;
 }
