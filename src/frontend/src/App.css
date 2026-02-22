@@ -297,10 +297,15 @@
   font-size: 0.85rem;
 }
 
+.slope-summary__table-wrapper {
+  overflow-x: auto;
+}
+
 .slope-summary__table {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.85rem;
+  table-layout: fixed;
 }
 
 .slope-summary__table th,
@@ -317,7 +322,18 @@
   white-space: nowrap;
 }
 
-.slope-summary__table td {
+.slope-summary__col-counter {
+  white-space: normal;
+  word-break: break-all;
+}
+
+.slope-summary__col-value {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.slope-summary__col-status {
+  text-align: center;
   white-space: nowrap;
 }
 
