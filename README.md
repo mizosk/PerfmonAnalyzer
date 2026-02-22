@@ -36,8 +36,9 @@ perfmonAnalyzer/
 │           ├── hooks/              # カスタム hooks
 │           ├── plugins/            # Chart.js プラグイン
 │           ├── services/           # API クライアント
-│           └── types/              # 型定義
-├── tests/                          # E2E テスト・テストデータ
+│           ├── types/              # 型定義
+│           └── test/               # テストセットアップ
+├── tests/                          # テストデータ・スクリプト
 ├── scripts/                        # デプロイスクリプト (Linux)
 ├── docs/
 │   ├── spec/                       # 要求仕様書
@@ -63,8 +64,8 @@ cd src/backend/PerfmonAnalyzer.Api
 dotnet run
 ```
 
-API は `https://localhost:7109`（または `http://localhost:5109`）で起動します。  
-Swagger UI: `https://localhost:7109/swagger`
+API は `https://localhost:7086`（または `http://localhost:5272`）で起動します。  
+Swagger UI: `https://localhost:7086/swagger`
 
 ### フロントエンドの起動
 
