@@ -55,10 +55,12 @@
 | コンポーネント | 責務 |
 |----------------|------|
 | **FileUpload** | CSV ファイルのアップロード UI |
-| **ChartView** | Chart.js を使った時系列グラフ表示 |
-| **RangeSelector** | 時間範囲の選択（入力フィールド or ドラッグ） |
+| **ChartView** | Chart.js を使った時系列グラフ表示。ドラッグ範囲選択・オーバーレイ表示を統合 |
+| **RangeSelector** | 時間範囲の選択（入力フィールド）。チャートドラッグと双方向連動。リセット機能 |
 | **SlopeSummary** | 傾き一覧テーブルと警告表示 |
 | **ExportButton** | グラフ画像のダウンロード |
+| **useChartDragSelect** | チャート上のドラッグ操作を制御するカスタムhook。pixel↔timestamp変換・30分スナップ |
+| **dragSelectPlugin** | Chart.js カスタムプラグイン。ドラッグ中/確定後のオーバーレイ描画 |
 
 **技術選定理由**:
 - **React**: コンポーネントベースで UI を分割しやすく、状態管理が明確
@@ -152,11 +154,19 @@ public class SlopeResult
 
 ### 3.2 範囲選択 → 傾き算出
 
+範囲選択は「チャート上のドラッグ」と「RangeSelector の日時入力」の2つの入口があるが、
+どちらも同じ処理フロー（`selectedRange` 更新 → スロープ解析実行）に合流する。
+チャートは常に全データを表示し、選択範囲はオーバーレイで視覚化する。
+
 ```
 [ユーザー]
-    │ 時間範囲を選択（2026/01/15 10:00 〜 2026/01/15 20:00）
+    │ 時間範囲を選択（ドラッグ or カレンダー入力）
     ▼
-[RangeSelector Component]
+[ChartView ドラッグ / RangeSelector 入力]
+    │ onDragSelect(range) / onRangeChange(range)
+    ▼
+[App]
+    │ selectedRange 状態更新
     │ POST /api/analysis/slope
     │ Body: { sessionId, startTime, endTime, thresholdKBPer10Min: 50 }
     ▼
@@ -174,8 +184,12 @@ public class SlopeResult
     ▼
 [SlopeSummary Component]
     │ テーブル表示、警告色適用
+[ChartView]
+    │ 選択範囲オーバーレイ更新
+[RangeSelector]
+    │ 日時フィールド同期
     ▼
-[ユーザー] 傾きサマリ確認
+[ユーザー] 傾きサマリ確認・選択範囲視覚確認
 ```
 
 ---
@@ -256,6 +270,10 @@ src/
     │   │   ├── RangeSelector.tsx
     │   │   ├── SlopeSummary.tsx
     │   │   └── ExportButton.tsx
+    │   ├── hooks/
+    │   │   └── useChartDragSelect.ts
+    │   ├── plugins/
+    │   │   └── chartDragSelectPlugin.ts
     │   ├── services/
     │   │   └── api.ts
     │   ├── types/
@@ -387,3 +405,4 @@ HTTP リクエスト → Controller → Service → Response
 |------------|------|----------|
 | 1.0 | 2026/01/31 | 初版作成 |
 | 1.1 | 2026/02/22 | ReportGenerator に Strategy パターン適用（Issue #6） |
+| 1.2 | 2026/02/22 | チャートドラッグ範囲選択機能の設計追加（Issue #10） |

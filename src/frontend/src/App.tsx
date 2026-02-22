@@ -8,7 +8,7 @@ import { ExportButton } from './components/ExportButton';
 import { ReportButton } from './components/ReportButton';
 import { SlopeSummary } from './components/SlopeSummary';
 import type { CounterInfo, TimeRange, SlopeResult, UploadResult } from './types';
-import { getSessionData, analyzeSlopeForSession } from './services/api';
+import { analyzeSlopeForSession } from './services/api';
 
 /**
  * カウンターデータから時間範囲を算出するヘルパー
@@ -31,9 +31,11 @@ function App() {
   // セッション状態
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [counters, setCounters] = useState<CounterInfo[]>([]);
-  const [timeRange, setTimeRange] = useState<TimeRange | undefined>(undefined);
+  /** 全データの時間範囲（不変、countersから算出） */
+  const [fullTimeRange, setFullTimeRange] = useState<TimeRange | undefined>(undefined);
+  /** ユーザー選択範囲（スロープ解析とオーバーレイ表示に使用） */
+  const [selectedRange, setSelectedRange] = useState<TimeRange | undefined>(undefined);
   const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
 
   // 傾き分析状態
   const [slopeResults, setSlopeResults] = useState<SlopeResult[]>([]);
@@ -59,7 +61,8 @@ function App() {
     setSessionId(result.sessionId);
     setCounters(result.counters);
     const range = computeTimeRange(result.counters);
-    setTimeRange(range);
+    setFullTimeRange(range);
+    setSelectedRange(range);
     setError(null);
     setSlopeResults([]);
     if (range) {
@@ -67,22 +70,27 @@ function App() {
     }
   }, [runSlopeAnalysis, threshold]);
 
-  /** 時間範囲変更時にデータを再取得 */
+  /** 時間範囲変更時（RangeSelector の「適用」ボタン経由） */
   const handleRangeChange = useCallback(async (range: TimeRange) => {
     if (!sessionId) return;
-    setIsLoading(true);
-    try {
-      const response = await getSessionData(sessionId, range.start, range.end);
-      setCounters(response.counters);
-      setTimeRange(range);
-      setError(null);
-      runSlopeAnalysis(sessionId, range, threshold);
-    } catch {
-      setError('データの取得に失敗しました。');
-    } finally {
-      setIsLoading(false);
-    }
+    setSelectedRange(range);
+    setError(null);
+    runSlopeAnalysis(sessionId, range, threshold);
   }, [sessionId, runSlopeAnalysis, threshold]);
+
+  /** チャートドラッグ選択時 */
+  const handleDragSelect = useCallback((range: TimeRange) => {
+    if (!sessionId) return;
+    setSelectedRange(range);
+    runSlopeAnalysis(sessionId, range, threshold);
+  }, [sessionId, runSlopeAnalysis, threshold]);
+
+  /** リセットボタン押下時（全範囲に戻す） */
+  const handleReset = useCallback(() => {
+    if (!sessionId || !fullTimeRange) return;
+    setSelectedRange(fullTimeRange);
+    runSlopeAnalysis(sessionId, fullTimeRange, threshold);
+  }, [sessionId, fullTimeRange, runSlopeAnalysis, threshold]);
 
   /** 閾値変更時 */
   const handleThresholdChange = useCallback((value: number) => {
@@ -105,21 +113,30 @@ function App() {
         {counters.length > 0 && (
           <>
             <section className="controls-section">
-              <RangeSelector key={sessionId} initialRange={timeRange} onRangeChange={handleRangeChange} />
+              <RangeSelector
+                range={selectedRange}
+                onRangeChange={handleRangeChange}
+                onReset={handleReset}
+              />
               <ExportButton chartRef={chartRef} />
               <ReportButton
                 chartRef={chartRef}
                 sessionId={sessionId}
-                startTime={timeRange?.start ?? ''}
-                endTime={timeRange?.end ?? ''}
+                startTime={selectedRange?.start ?? ''}
+                endTime={selectedRange?.end ?? ''}
                 threshold={threshold}
               />
             </section>
 
             <div className="content-layout">
               <section className="chart-section">
-                {isLoading && <div className="loading-overlay">読み込み中...</div>}
-                <ChartView ref={chartRef} counters={counters} />
+                <ChartView
+                  ref={chartRef}
+                  counters={counters}
+                  selectedRange={selectedRange}
+                  fullTimeRange={fullTimeRange}
+                  onDragSelect={handleDragSelect}
+                />
               </section>
 
               <section className="summary-section">

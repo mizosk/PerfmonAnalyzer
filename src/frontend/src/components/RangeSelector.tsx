@@ -1,5 +1,5 @@
 import type React from 'react';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import type { TimeRange } from '../types';
 
 /** バリデーションエラーメッセージ */
@@ -9,8 +9,13 @@ const VALIDATION_ERROR_START_AFTER_END = '開始日時は終了日時より前�
  * 範囲選択コンポーネントの props
  */
 interface RangeSelectorProps {
+  /** 現在適用中の範囲（外部制御、controlled） */
+  range?: TimeRange;
+  /** 後方互換: range が未指定の場合の初期値 */
   initialRange?: TimeRange;
   onRangeChange: (range: TimeRange) => void;
+  /** リセットコールバック（提供時にリセットボタンを表示） */
+  onReset?: () => void;
 }
 
 /**
@@ -24,16 +29,26 @@ function toDateTimeLocal(isoString: string): string {
 /**
  * 範囲選択コンポーネント
  * 解析対象の時間範囲を選択する
- * ※ 親コンポーネントで key を変更することで初期値リセットが可能
+ * controlled モード: range prop で外部から同期
  */
-export const RangeSelector: React.FC<RangeSelectorProps> = ({ initialRange, onRangeChange }) => {
+export const RangeSelector: React.FC<RangeSelectorProps> = ({ range, initialRange, onRangeChange, onReset }) => {
+  const effectiveRange = range ?? initialRange;
   const [start, setStart] = useState(
-    initialRange ? toDateTimeLocal(initialRange.start) : ''
+    effectiveRange ? toDateTimeLocal(effectiveRange.start) : ''
   );
   const [end, setEnd] = useState(
-    initialRange ? toDateTimeLocal(initialRange.end) : ''
+    effectiveRange ? toDateTimeLocal(effectiveRange.end) : ''
   );
   const [validationError, setValidationError] = useState<string | null>(null);
+
+  // 外部からの range 変更を内部 state に同期（controlled モード）
+  useEffect(() => {
+    if (range) {
+      setStart(toDateTimeLocal(range.start));
+      setEnd(toDateTimeLocal(range.end));
+      setValidationError(null);
+    }
+  }, [range]);
 
   /** 適用ボタンクリック時 */
   const handleApply = useCallback(() => {
@@ -70,9 +85,16 @@ export const RangeSelector: React.FC<RangeSelectorProps> = ({ initialRange, onRa
           />
         </label>
       </div>
-      <button onClick={handleApply} disabled={!start || !end}>
-        適用
-      </button>
+      <div className="range-selector__buttons">
+        <button onClick={handleApply} disabled={!start || !end}>
+          適用
+        </button>
+        {onReset && (
+          <button className="range-selector__reset" onClick={onReset} type="button">
+            リセット
+          </button>
+        )}
+      </div>
       {validationError && (
         <p className="range-selector__error" role="alert">{validationError}</p>
       )}

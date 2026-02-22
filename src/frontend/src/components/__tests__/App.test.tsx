@@ -19,10 +19,19 @@ vi.mock('react-chartjs-2', () => ({
   },
 }));
 
+// プラグインと hook をモック
+vi.mock('../../plugins/chartDragSelectPlugin', () => ({
+  dragSelectPlugin: { id: 'dragSelect', afterDraw: vi.fn() },
+}));
+
+vi.mock('../../hooks/useChartDragSelect', () => ({
+  useChartDragSelect: vi.fn(),
+  findNearestLabelIndex: vi.fn().mockReturnValue(0),
+}));
+
 // API モジュールをモック
 vi.mock('../../services/api', () => ({
   uploadCsv: vi.fn(),
-  getSessionData: vi.fn(),
   analyzeSlopeForSession: vi.fn().mockResolvedValue({ results: [] }),
 }));
 
