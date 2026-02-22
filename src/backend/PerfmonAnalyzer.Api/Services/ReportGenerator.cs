@@ -25,7 +25,7 @@ public class ReportGenerator : IReportGenerator
     /// <inheritdoc />
     public ReportResponse GenerateReport(
         IReadOnlyList<CounterInfo> counters,
-        List<SlopeResult> slopeResults,
+        IReadOnlyList<SlopeResult> slopeResults,
         DateTime startTime,
         DateTime endTime,
         double thresholdKBPer10Min,
@@ -33,11 +33,13 @@ public class ReportGenerator : IReportGenerator
         string format)
     {
         var strategy = GetStrategy(format);
+        var now = DateTime.Now;
 
         var context = new ReportFormatContext
         {
             Counters = counters,
             SlopeResults = slopeResults,
+            GeneratedAt = now,
             StartTime = startTime,
             EndTime = endTime,
             ThresholdKBPer10Min = thresholdKBPer10Min,
@@ -45,7 +47,6 @@ public class ReportGenerator : IReportGenerator
         };
 
         var content = strategy.Generate(context);
-        var now = DateTime.Now;
         var fileName = $"perfmon_report_{now:yyyyMMdd_HHmmss}.{strategy.FileExtension}";
 
         return new ReportResponse

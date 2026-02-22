@@ -31,6 +31,7 @@ public class ReportFormatStrategyTests
         {
             Counters = [],
             SlopeResults = slopeResults,
+            GeneratedAt = new DateTime(2026, 1, 1, 1, 0, 0),
             StartTime = new DateTime(2026, 1, 1, 0, 0, 0),
             EndTime = new DateTime(2026, 1, 1, 0, 20, 0),
             ThresholdKBPer10Min = 50.0,

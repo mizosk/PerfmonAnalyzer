@@ -20,7 +20,7 @@ public interface IReportGenerator
     /// <returns>生成されたレポート</returns>
     ReportResponse GenerateReport(
         IReadOnlyList<CounterInfo> counters,
-        List<SlopeResult> slopeResults,
+        IReadOnlyList<SlopeResult> slopeResults,
         DateTime startTime,
         DateTime endTime,
         double thresholdKBPer10Min,

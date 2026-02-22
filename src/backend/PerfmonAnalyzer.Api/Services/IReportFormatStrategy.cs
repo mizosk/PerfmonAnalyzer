@@ -35,7 +35,10 @@ public class ReportFormatContext
     public IReadOnlyList<CounterInfo> Counters { get; init; } = [];
 
     /// <summary>傾き分析結果のリスト</summary>
-    public List<SlopeResult> SlopeResults { get; init; } = [];
+    public IReadOnlyList<SlopeResult> SlopeResults { get; init; } = [];
+
+    /// <summary>レポート生成日時</summary>
+    public DateTime GeneratedAt { get; init; }
 
     /// <summary>分析開始時刻</summary>
     public DateTime StartTime { get; init; }

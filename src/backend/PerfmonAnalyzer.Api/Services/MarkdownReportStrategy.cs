@@ -26,7 +26,7 @@ public class MarkdownReportStrategy : IReportFormatStrategy
         // タイトル
         sb.AppendLine("# Perfmon Analyzer レポート");
         sb.AppendLine();
-        sb.AppendLine($"- **生成日時:** {DateTime.Now:yyyy-MM-dd HH:mm}");
+        sb.AppendLine($"- **生成日時:** {context.GeneratedAt:yyyy-MM-dd HH:mm}");
         sb.AppendLine($"- **分析期間:** {context.StartTime:yyyy-MM-dd HH:mm} ～ {context.EndTime:yyyy-MM-dd HH:mm}");
         sb.AppendLine($"- **閾値:** {context.ThresholdKBPer10Min} KB/10min");
         sb.AppendLine();
@@ -84,7 +84,7 @@ public class MarkdownReportStrategy : IReportFormatStrategy
     /// <summary>
     /// カウンタ別詳細テーブルを出力する
     /// </summary>
-    private static void AppendDetailTable(StringBuilder sb, List<SlopeResult> slopeResults)
+    private static void AppendDetailTable(StringBuilder sb, IReadOnlyList<SlopeResult> slopeResults)
     {
         if (slopeResults.Count > 0)
         {
@@ -107,7 +107,7 @@ public class MarkdownReportStrategy : IReportFormatStrategy
     /// <summary>
     /// 閾値超過カウンタ一覧テーブルを出力する
     /// </summary>
-    private static void AppendWarningTable(StringBuilder sb, List<SlopeResult> warningResults)
+    private static void AppendWarningTable(StringBuilder sb, IReadOnlyList<SlopeResult> warningResults)
     {
         if (warningResults.Count > 0)
         {

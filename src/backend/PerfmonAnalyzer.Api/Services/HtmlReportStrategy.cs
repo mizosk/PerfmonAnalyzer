@@ -40,7 +40,7 @@ public class HtmlReportStrategy : IReportFormatStrategy
 
         // メタ情報
         sb.AppendLine("<div class=\"meta-info\">");
-        sb.AppendLine($"<p><strong>生成日時:</strong> {DateTime.Now:yyyy-MM-dd HH:mm}</p>");
+        sb.AppendLine($"<p><strong>生成日時:</strong> {context.GeneratedAt:yyyy-MM-dd HH:mm}</p>");
         sb.AppendLine($"<p><strong>分析期間:</strong> {context.StartTime:yyyy-MM-dd HH:mm} ～ {context.EndTime:yyyy-MM-dd HH:mm}</p>");
         sb.AppendLine($"<p><strong>閾値:</strong> {context.ThresholdKBPer10Min} KB/10min</p>");
         sb.AppendLine("</div>");
@@ -96,7 +96,7 @@ public class HtmlReportStrategy : IReportFormatStrategy
     /// <summary>
     /// カウンタ別詳細テーブルを出力する
     /// </summary>
-    private static void AppendDetailTable(StringBuilder sb, List<SlopeResult> slopeResults)
+    private static void AppendDetailTable(StringBuilder sb, IReadOnlyList<SlopeResult> slopeResults)
     {
         if (slopeResults.Count > 0)
         {
@@ -126,7 +126,7 @@ public class HtmlReportStrategy : IReportFormatStrategy
     /// <summary>
     /// 閾値超過カウンタ一覧テーブルを出力する
     /// </summary>
-    private static void AppendWarningTable(StringBuilder sb, List<SlopeResult> warningResults)
+    private static void AppendWarningTable(StringBuilder sb, IReadOnlyList<SlopeResult> warningResults)
     {
         if (warningResults.Count > 0)
         {
