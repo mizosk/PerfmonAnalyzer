@@ -1,6 +1,7 @@
 ---
 name: perfmon.pm
 description: PM(プロジェクトマネージャー)エージェント。GitHub Issueによるタスク管理とワークフローの調整を担当します。
+model: Claude Opus 4.6 (copilot)
 tools: ['execute/runInTerminal', 'execute/getTerminalOutput', 'read/readFile', 'edit/createFile', 'edit/editFiles', 'agent/runSubagent', 'agent', 'todo']
 agents: ["*"]
 handoffs:
