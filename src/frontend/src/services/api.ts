@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { UploadResult, DataResponse, SlopeResponse, SlopeRequest, TimeRange } from '../types';
+import type { UploadResult, DataResponse, SlopeResponse, SlopeRequest, TimeRange, ReportRequest } from '../types';
 
 /**
  * API クライアント
@@ -65,6 +65,14 @@ export const analyzeSlopeForSession = async (
 /** 傾き解析結果をエクスポート */
 export const exportResults = async (format: 'csv' | 'json'): Promise<Blob> => {
   const response = await apiClient.get(`/export/${format}`, {
+    responseType: 'blob',
+  });
+  return response.data;
+};
+
+/** レポートを生成してファイルとしてダウンロード */
+export const generateReport = async (request: ReportRequest): Promise<Blob> => {
+  const response = await apiClient.post('/report/generate', request, {
     responseType: 'blob',
   });
   return response.data;
