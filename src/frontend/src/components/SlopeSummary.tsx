@@ -55,32 +55,34 @@ export const SlopeSummary: React.FC<SlopeSummaryProps> = ({
       {sorted.length === 0 ? (
         <p>解析結果がありません。</p>
       ) : (
-        <table className="slope-summary__table" aria-label="傾き解析結果一覧">
-          <thead>
-            <tr>
-              <th>カウンタ名</th>
-              <th>傾き (KB/10min)</th>
-              <th>R²</th>
-              <th>判定</th>
-            </tr>
-          </thead>
-          <tbody>
-            {sorted.map((result) => {
-              const warn = isWarning(result);
-              return (
-                <tr
-                  key={result.counterName}
-                  className={warn ? 'warning' : 'ok'}
-                >
-                  <td>{result.counterName}</td>
-                  <td>{result.slopeKBPer10Min.toFixed(2)}</td>
-                  <td>{result.rSquared.toFixed(3)}</td>
-                  <td>{warn ? '⚠️ 警告' : '✓ OK'}</td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+        <div className="slope-summary__table-wrapper">
+          <table className="slope-summary__table" aria-label="傾き解析結果一覧">
+            <thead>
+              <tr>
+                <th className="slope-summary__col-counter">カウンタ名</th>
+                <th className="slope-summary__col-value">傾き (KB/10min)</th>
+                <th className="slope-summary__col-value">R²</th>
+                <th className="slope-summary__col-status">判定</th>
+              </tr>
+            </thead>
+            <tbody>
+              {sorted.map((result) => {
+                const warn = isWarning(result);
+                return (
+                  <tr
+                    key={result.counterName}
+                    className={warn ? 'warning' : 'ok'}
+                  >
+                    <td className="slope-summary__col-counter">{result.counterName}</td>
+                    <td className="slope-summary__col-value">{result.slopeKBPer10Min.toFixed(2)}</td>
+                    <td className="slope-summary__col-value">{result.rSquared.toFixed(3)}</td>
+                    <td className="slope-summary__col-status">{warn ? '⚠️ 警告' : '✓ OK'}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );
